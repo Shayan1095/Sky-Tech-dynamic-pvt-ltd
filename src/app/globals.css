@@ -1,26 +1,536 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-primary: #006bb8;
+  --color-accent: #e0f3ff;
+  --color-cta: #00c2ff;
+  --color-text: #121212;
+  --color-bg: #ffffff;
+  --color-surface: #f3f4f6;
+  --color-navy: #0b1f35;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
+  --font-mono: var(--font-numeric);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+@property --fill {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* Numerals render as a partially-filled vessel: a hard-stop gradient clipped
+   to the glyphs, with --fill driven by scroll progress. */
+.trust-numeral {
+  --fill: 0%;
+  background-image: linear-gradient(
+    to top,
+    var(--color-primary) var(--fill),
+    color-mix(in srgb, var(--color-primary) 14%, transparent) var(--fill)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Preloader: hidden before first paint for visitors who've already seen it
+   this session (flag set by its inline script) and for reduced motion. */
+html[data-sky-seen] .sky-preloader {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sky-preloader {
+    display: none;
+  }
+}
+
+/* SplitText line elements carry the hero's gradient, since the parent's
+   background-clip:text stops painting once the text moves into child nodes. */
+.hero-line {
+  background-image: linear-gradient(
+    135deg,
+    rgb(18 18 18 / 0.55) 20%,
+    #121212 80%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.08em;
+}
+
+/* Vessel fill on dark cards: white fill, faint white below the line. */
+.trust-numeral--on-dark {
+  background-image: linear-gradient(
+    to top,
+    #ffffff var(--fill),
+    rgb(255 255 255 / 0.18) var(--fill)
+  );
+}
+
+@keyframes fadeChase {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- THE SKY TECH APPROACH section palette. -------------------------------
+   On the site's original palette: brand blue, ink and cool neutrals on the
+   #F8FAFC ground it shares with the Services section below. */
+.sky-approach {
+  --ap-bg: #f8fafc;
+  --ap-panel: #ffffff;
+  --ap-border: #e3e8ef;
+  --ap-blue: #006bb8;
+  --ap-ink: #121212;
+  --ap-muted: #5a6472;
+}
+
+/* Automate pillar: a single signal travelling the workflow line on hover.
+   One pass per hover, never looping. Distance matches the line's height. */
+@keyframes approachPulse {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--pulse-travel, 124px));
+  }
+}
+
+/* The workflow well is shorter on phones (156px vs 172px). */
+@media (max-width: 639px) {
+  .approach-automate {
+    --pulse-travel: 108px;
+  }
+}
+
+.approach-automate:hover .approach-pulse {
+  animation: approachPulse 1.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Two-tier elevation: a near-invisible resting shadow, and an accent-tinted
+   focus shadow that marks the card the scroll relay is currently on. */
+.approach-card {
+  background-image: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  box-shadow:
+    0 1px 2px rgb(18 18 18 / 0.04),
+    0 14px 34px -22px rgb(18 18 18 / 0.24);
+  transition:
+    box-shadow 0.55s ease,
+    border-color 0.55s ease;
+}
+
+.approach-pillar.is-focused .approach-card {
+  border-color: color-mix(in srgb, var(--ap-blue) 42%, transparent);
+  box-shadow:
+    0 2px 6px rgb(0 107 184 / 0.1),
+    0 36px 68px -30px rgb(0 107 184 / 0.45);
+}
+
+/* background-image cannot be transitioned, so the accent wash is a stacked
+   overlay whose opacity animates instead. */
+.approach-glow {
+  transition: opacity 0.55s ease;
+}
+
+.approach-pillar.is-focused .approach-glow {
+  opacity: 1;
+}
+
+/* About hero. Phones and tablets stack headline → artwork → "Our Story";
+   desktop puts the headline and cue in a ~55% left column beside the art. */
+.about-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "art" "cue";
+  row-gap: 2.5rem;
+}
+.about-hero-head { grid-area: head; container-type: inline-size; }
+.about-hero-art { grid-area: art; }
+.about-hero-cue { grid-area: cue; }
+
+@media (min-width: 1024px) {
+  .about-hero-grid {
+    grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "head art" "cue art";
+    column-gap: 3rem;
+    row-gap: 3.5rem;
+    align-items: center;
+  }
+  .about-hero-cue { align-self: end; }
+}
+
+/* Sized from its own column rather than the viewport, so the longest phrase
+   always fits the column and can never run into the artwork. */
+.about-h1 {
+  /* 12.3cqi puts the longest phrase at ~92% of its column. */
+  font-size: clamp(1.75rem, 12.3cqi, 4.25rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.032em;
+}
+@supports not (container-type: inline-size) {
+  .about-h1 { font-size: clamp(1.75rem, 1rem + 3vw, 3.5rem); }
+}
+
+/* Masks give each phrase room for the tight tracking's overhang, so nothing
+   is shaved off a glyph while it rises. */
+.about-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0 0.06em 0.1em 0;
+  margin: 0 -0.06em -0.1em 0;
+}
+.about-phrase {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Our Story key phrases: an underline that can wrap across lines and draws
+   left to right (background-size is animated from 0% to 100%). */
+.story-mark {
+  background-repeat: no-repeat;
+  background-position: 0 96%;
+  background-size: 100% 2px;
+  padding-bottom: 0.04em;
+}
+.story-mark--problem {
+  background-image: linear-gradient(rgb(18 18 18 / 0.32), rgb(18 18 18 / 0.32));
+}
+.story-mark--answer {
+  background-image: linear-gradient(var(--color-primary), var(--color-primary));
+}
+
+/* Mission key phrase: a cyan underline beneath white text (the text itself
+   stays white for contrast on the blue card). */
+.ma-mark {
+  background-image: linear-gradient(var(--color-cta), var(--color-cta));
+  background-repeat: no-repeat;
+  background-position: 0 96%;
+  background-size: 100% 2px;
+  padding-bottom: 0.04em;
+}
+
+@keyframes aboutCue {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(4px);
+  }
+}
+
+/* Services featured card. Phones and tablets read copy → artwork → footer in
+   one column; on desktop the copy and footer share the left column and the
+   artwork panel spans both rows on the right. */
+.svc-unified {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "copy" "art" "foot";
+}
+.svc-u-copy { grid-area: copy; }
+.svc-u-art { grid-area: art; }
+.svc-u-foot { grid-area: foot; }
+
+@media (min-width: 1024px) {
+  .svc-unified {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "copy art" "foot art";
+  }
+}
+
+/* Services pager — the active number is driven by scroll position within the
+   pinned sequence, not by a click state. */
+.svc-dot.is-current {
+  color: var(--color-primary);
+}
+
+.svc-dot.is-current .svc-dot-rule {
+  transform: scaleX(1);
+}
+
+/* Supporting service cards — on the site's original palette, sitting on the
+   same #f8fafc ground as the rest of the section. */
+.svc-cards {
+  --card-blue: #006bb8;
+  --card-ink: #121212;
+  --card-muted: #5a6472;
+  --card-border: #e3e8ef;
+  --card-band: #f8fafc;
+}
+
+
+/* ============================================================================
+   OUR PROCESS — pinned-paper zigzag. Token map to the site's real variables:
+     --p-bg        site light ground                  #f8fafc
+     --p-ink       var(--color-text)                  #121212
+     --p-accent    var(--color-primary)               #006bb8  (existing blue)
+     --p-muted     #5a6472  — 5.5:1 on the ground
+     --p-ghost     #c8d6e5  — decorative; the numerals carrying it are
+                              aria-hidden and duplicated by an accessible
+                              step number, so the 3:1 rule does not apply
+     --p-hairline  #e3e8ef
+   Three states come from CONTAINER queries on the section, so the component
+   reflows to its own usable width rather than the viewport's.
+   ========================================================================== */
+.sky-process {
+  --p-bg: #f8fafc;
+  --p-ink: var(--color-text);
+  --p-accent: var(--color-primary);
+  --p-muted: #5a6472;
+  --p-ghost: #c8d6e5;
+  --p-hairline: #e3e8ef;
+  --p-card: #f3f5f8;
+  --p-pin: #1d2733;
+  --p-pad: clamp(1.25rem, 0.9rem + 1.6vw, 2rem);
+  --p-gap: clamp(1.25rem, 0.6rem + 2.2vw, 2.25rem);
+  --p-rhythm: 1;
+
+  container-type: inline-size;
+  position: relative;
+  overflow-x: clip;
+  background: var(--p-bg);
+  padding-block: calc(clamp(4rem, 2rem + 6vw, 7rem) * var(--p-rhythm));
+  padding-left: max(1.25rem, 5vw, env(safe-area-inset-left));
+  padding-right: max(1.25rem, 5vw, env(safe-area-inset-right));
+}
+
+/* faint drafting grid, masked so it never reaches the edges */
+.sky-process::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgb(10 10 10 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(10 10 10 / 0.04) 1px, transparent 1px);
+  background-size: clamp(64px, 7vw, 112px) clamp(64px, 7vw, 112px);
+  -webkit-mask-image: radial-gradient(120% 75% at 50% 45%, #000 30%, transparent 82%);
+  mask-image: radial-gradient(120% 75% at 50% 45%, #000 30%, transparent 82%);
+}
+
+.sky-process .proc-inner {
+  position: relative;
+  margin-inline: auto;
+  max-width: 1200px;
+}
+
+/* --- fluid type ----------------------------------------------------------- */
+.sky-process .proc-eyebrow-text {
+  font-size: clamp(0.68rem, 0.6rem + 0.25vw, 0.8rem);
+}
+.sky-process .proc-h2 {
+  font-size: clamp(1.9rem, 1.1rem + 3.6vw, 2.9rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.sky-process .proc-num {
+  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.35rem);
+  line-height: 1;
+  color: var(--p-ghost);
+  transition: color 0.35s ease;
+}
+.sky-process .proc-num.is-lit {
+  color: var(--p-accent);
+}
+.sky-process .proc-title {
+  font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.75rem);
+  color: var(--p-ink);
+}
+.sky-process .proc-body {
+  font-size: clamp(0.9rem, 0.86rem + 0.2vw, 1rem);
+  color: var(--p-muted);
+  text-wrap: pretty;
+}
+
+/* --- the track ------------------------------------------------------------ */
+.sky-process .proc-track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-gap);
+  margin: 0;
+  /* STACK only — clears the first card's pin from the heading. DUO and
+     LATTICE reset this to 0 below, so their layout is unchanged. */
+  margin-top: clamp(2.75rem, 2rem + 3vw, 3.5rem);
+  padding: 0;
+  list-style: none;
+}
+
+.sky-process .proc-cell {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  width: 100%;
+  padding: var(--p-pad);
+  border: 1px solid var(--p-hairline);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--p-card) 100%);
+  box-shadow:
+    0 2px 6px rgb(10 10 10 / 0.05),
+    0 18px 38px -20px rgb(10 10 10 / 0.28);
+  /* Own layer: the tilt, lift and entrance move the painted shadow instead of
+     re-rasterising it every frame. */
+  will-change: transform;
+}
+.sky-process .proc-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow:
+    0 4px 10px rgb(0 107 184 / 0.1),
+    0 30px 58px -22px rgb(0 107 184 / 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.sky-process .proc-cell.is-active::after {
+  opacity: 1;
+}
+
+/* the pin the card hangs from */
+.sky-process .proc-pin {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  margin-left: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #4b5b6e, var(--p-pin) 62%);
+  box-shadow:
+    0 3px 8px rgb(10 10 10 / 0.3),
+    inset 0 1px 2px rgb(255 255 255 / 0.35);
+  transition: background 0.4s ease;
+}
+.sky-process .proc-cell.is-active .proc-pin {
+  background: radial-gradient(circle at 34% 28%, #4aa3e0, var(--p-accent) 62%);
+}
+
+/* the dashed weave sits behind the cards */
+.sky-process .proc-weave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+/* --- DUO: the zigzag begins ----------------------------------------------- */
+@container (min-width: 640px) {
+  .sky-process .proc-track {
+    margin-top: 0;
+  }
+  .sky-process .proc-cell {
+    width: 72%;
+  }
+  .sky-process .proc-cell:nth-of-type(odd) {
+    margin-left: auto;
+  }
+}
+
+/* --- LATTICE: full alternating weave -------------------------------------- */
+@container (min-width: 1024px) {
+  .sky-process .proc-cell {
+    width: 46%;
+  }
+  .sky-process .proc-track {
+    gap: clamp(1.75rem, 0.5rem + 2.4vw, 3rem);
+  }
+}
+
+/* --- pointer-only enhancements, widest state only ------------------------- */
+.sky-process .proc-spot {
+  opacity: 0;
+  border-radius: inherit;
+}
+@media (hover: hover) and (pointer: fine) {
+  @container (min-width: 1024px) {
+    .sky-process .proc-spot {
+      transition: opacity 0.35s ease;
+    }
+    .sky-process .proc-cell:hover .proc-spot {
+      opacity: 1;
+    }
+    .sky-process .proc-cell:hover .proc-pin {
+      background: radial-gradient(circle at 34% 28%, #4aa3e0, var(--p-accent) 62%);
+    }
+  }
+}
+
+/* --- landscape phone: tighten the rhythm ---------------------------------- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sky-process {
+    --p-rhythm: 0.65;
+  }
+}
+
+/* --- fallback where container queries are unsupported --------------------- */
+@supports not (container-type: inline-size) {
+  @media (min-width: 640px) {
+    .sky-process .proc-track {
+      margin-top: 0;
+    }
+    .sky-process .proc-cell {
+      width: 72%;
+    }
+    .sky-process .proc-cell:nth-of-type(odd) {
+      margin-left: auto;
+    }
+  }
+  @media (min-width: 1024px) {
+    .sky-process .proc-cell {
+      width: 46%;
+    }
+  }
 }

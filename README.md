@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SKY Tech Dynamic — Website
 
-## Getting Started
+The public website for **SKY Tech Dynamic Private Limited**.
 
-First, run the development server:
+## Tech stack
+
+- [Next.js](https://nextjs.org) 16 (App Router) · React 19 · TypeScript (strict)
+- Tailwind CSS v4
+- GSAP + ScrollTrigger (animation) · Lenis (smooth scrolling) · Motion
+- Page copy lives in `src/content/*.md` (front matter provides SEO titles and descriptions)
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command         | What it does                         |
+| --------------- | ------------------------------------ |
+| `npm run dev`   | Start the development server         |
+| `npm run build` | Type-check and create a production build |
+| `npm run start` | Serve the production build           |
+| `npm run lint`  | Run ESLint                           |
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/          Routes, metadata (sitemap, robots, preview image), 404 page
+  components/   Page sections, grouped by page (home, about, services, contact, shared)
+  content/      Page copy (Markdown)
+  lib/          Shared helpers (animation setup, site/SEO config, contact form schema)
+public/         Images and artwork
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Name                   | Required | Purpose                                                        |
+| ---------------------- | -------- | -------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL` | Yes, in production | The live address, e.g. `https://skytech.com.pk`. Used for canonical URLs, the sitemap and link previews. |
 
-## Deploy on Vercel
+Set variables in `.env.local` for local development and in the hosting dashboard for production. Never commit `.env` files.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Security
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Security headers (Content Security Policy, HSTS, frame blocking and others) are set in `next.config.ts`.
+
+## Status
+
+- The contact form validates on the client and server; email delivery and lead storage are not connected yet.
+- Individual service pages are not built yet; service links open the contact form with that service preselected.
