@@ -683,7 +683,7 @@ export default function ServicesSection() {
 
             {/* The conclusion of the grid — same anatomy, inverted. */}
             <Link
-              href="/services/"
+              href="/services"
               className="svc-support group relative flex flex-col sm:min-h-[260px] overflow-hidden rounded-[20px] bg-[var(--card-blue)] px-6 py-5 text-white shadow-[0_1px_2px_rgb(18_18_18/0.06)] transition-[transform,box-shadow] duration-500 ease-out hover:-translate-y-[5px] hover:shadow-[0_2px_8px_rgb(0_107_184/0.25),0_28px_52px_-24px_rgb(0_107_184/0.55)]"
             >
               <span

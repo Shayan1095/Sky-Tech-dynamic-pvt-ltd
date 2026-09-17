@@ -24,9 +24,9 @@ const WEBSITE = { label: "skytech.com.pk", href: "https://skytech.com.pk" };
 
 const PAGES = [
   { href: "/", label: "Home" },
-  { href: "/services/", label: "Services" },
-  { href: "/about/", label: "About" },
-  { href: "/contact/", label: "Contact" },
+  { href: "/services", label: "Services" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 // Individual service pages aren't built yet, so these point at /services/.
@@ -277,7 +277,7 @@ export default function Footer() {
               businesses build, automate, and grow through technology.
             </p>
             <Link
-              href="/contact/"
+              href="/contact"
               className="group mt-7 inline-flex min-h-[46px] items-center gap-3 rounded-full border border-white/25 py-2 pl-5 pr-2 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-white transition-[background-color,border-color,color] duration-500 ease-out hover:border-white hover:bg-white hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
               Book a Free Consultation
@@ -308,7 +308,7 @@ export default function Footer() {
             <ul className="mt-5 space-y-3 text-[0.95rem]">
               {SERVICES.map((s) => (
                 <li key={s}>
-                  <SweepLink href="/services/">{s}</SweepLink>
+                  <SweepLink href="/services">{s}</SweepLink>
                 </li>
               ))}
             </ul>

@@ -13,9 +13,9 @@ const useIsomorphicLayoutEffect =
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/services/", label: "Services" },
-  { href: "/about/", label: "About" },
-  { href: "/contact/", label: "Contact" },
+  { href: "/services", label: "Services" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const PHONE = { label: "+92 333 567 3810", href: "tel:+923335673810" };
@@ -235,7 +235,7 @@ export default function Navbar() {
 
           {/* CTA block (desktop), flush to the right edge */}
           <Link
-            href="/contact/"
+            href="/contact"
             className="group relative isolate ml-auto hidden items-center gap-4 overflow-hidden bg-primary px-8 text-[13px] font-semibold uppercase tracking-[0.14em] text-white focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white lg:flex xl:px-10"
           >
             <span
@@ -318,7 +318,7 @@ export default function Navbar() {
             <a href={EMAIL.href} className="inline-block py-1.5 text-white/75 hover:text-cta">{EMAIL.label}</a>
           </div>
           <Link
-            href="/contact/"
+            href="/contact"
             onClick={() => setOpen(false)}
             className="inline-flex min-h-[56px] items-center justify-between gap-4 bg-primary px-6 text-[13px] font-semibold uppercase tracking-[0.14em] text-white"
           >

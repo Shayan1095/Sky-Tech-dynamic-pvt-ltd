@@ -188,7 +188,7 @@ export default function AboutCTA() {
                 the label rolls to white and the arrow is swapped. Pure CSS;
                 hover only applies on devices that can hover. */}
             <Link
-              href="/contact/"
+              href="/contact"
               className="group relative isolate inline-flex min-h-[60px] items-center gap-5 overflow-hidden rounded-full bg-bg py-2 pl-8 pr-2 text-sm font-semibold uppercase tracking-[0.1em] text-text shadow-[0_14px_36px_-16px_rgb(0_0_0/0.6)] ring-1 ring-transparent [transition:box-shadow_500ms_ease-out,transform_500ms_ease-out,scale_140ms_cubic-bezier(0.22,1,0.36,1)] hover:shadow-[0_22px_48px_-18px_rgb(0_0_0/0.7)] hover:ring-bg/45 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bg focus-visible:ring-bg/45 active:scale-[0.98]"
             >
               {/* label roll */}

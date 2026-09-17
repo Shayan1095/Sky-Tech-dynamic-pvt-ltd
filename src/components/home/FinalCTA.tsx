@@ -136,7 +136,7 @@ export default function FinalCTA() {
                 variant only applies on devices that can hover, so touch
                 screens never get a stuck state — they get the press. */}
             <Link
-              href="/contact/"
+              href="/contact"
               className="group relative isolate inline-flex min-h-[56px] items-center gap-4 overflow-hidden rounded-full bg-bg py-2 pl-7 pr-2 text-sm font-semibold uppercase tracking-[0.08em] text-text shadow-[0_10px_28px_-14px_rgb(0_0_0/0.55)] ring-1 ring-transparent [transition:box-shadow_500ms_ease-out,transform_500ms_ease-out,scale_140ms_cubic-bezier(0.22,1,0.36,1)] hover:shadow-[0_18px_40px_-16px_rgb(0_0_0/0.65)] hover:ring-bg/45 focus-visible:ring-bg/45 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bg active:scale-[0.98]"
             >
               {/* label roll */}

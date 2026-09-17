@@ -92,23 +92,40 @@ export default function Preloader() {
         if (countRef.current) countRef.current.textContent = String(v).padStart(3, "0");
         if (barRef.current) barRef.current.style.transform = `scaleX(${progress.v / 100})`;
       };
-      const toward = (target: number, duration = 0.6) =>
+      /* The milestones below resolve in whatever order the network decides,
+         and each tween overwrites the last — so the target has to be clamped
+         upward or a late-arriving smaller milestone would run the counter
+         backwards. A meter that counts down reads as a fault, not progress. */
+      let peak = 0;
+      const toward = (target: number, duration = 0.6) => {
+        if (target <= peak) return;
+        peak = target;
         gsap.to(progress, { v: target, duration, ease: "power2.out", overwrite: true, onUpdate: render });
+      };
 
       toward(24, 0.8);
       const fonts = (document.fonts?.ready ?? Promise.resolve()).then(() => {
-        if (!cancelled) toward(60);
+        if (!cancelled) toward(55);
       });
-      const pageLoad = new Promise<void>((resolve) => {
-        if (document.readyState === "complete") resolve();
-        else window.addEventListener("load", () => resolve(), { once: true });
+      /* Drives the counter only. The exit deliberately does not wait for it:
+         load fires after every image below the fold has arrived, long after
+         there is anything left worth covering up. */
+      window.addEventListener("load", () => { if (!cancelled) toward(88); }, { once: true });
+      /* DOMContentLoaded rather than load: what the panel is waiting for is
+         the page being *ready to look at*. The load event also waits on every
+         image and deferred script further down the page, none of which change
+         what the visitor sees the moment the panel lifts — and on a throttled
+         connection that kept the viewport covered for seconds. */
+      const domReady = new Promise<void>((resolve) => {
+        if (document.readyState !== "loading") resolve();
+        else document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
       }).then(() => {
-        if (!cancelled) toward(88);
+        if (!cancelled) toward(72);
       });
       // Long enough for the intro to read, never the old fixed 2.2s hold.
       const minimum = new Promise<void>((resolve) => setTimeout(resolve, 950));
       // Slow networks still get the site; the page keeps loading behind.
-      const ceiling = new Promise<void>((resolve) => setTimeout(resolve, 3000));
+      const ceiling = new Promise<void>((resolve) => setTimeout(resolve, 1800));
 
       const exit = () => {
         try {
@@ -119,12 +136,12 @@ export default function Preloader() {
         gsap
           .timeline({ onComplete: () => setDone(true) })
           .to(".pl-content", { yPercent: -6, opacity: 0, duration: 0.55, ease: "power3.in" }, 0)
-          .to(root, { clipPath: "inset(0 0 100% 0)", duration: 0.95, ease: "power4.inOut" }, 0.2)
+          .to(root, { clipPath: "inset(0 0 100% 0)", duration: 0.65, ease: "power4.inOut" }, 0.2)
           // The hero's entrance starts as the panel lifts, not after.
-          .add(announceReady, 0.55);
+          .add(announceReady, 0.45);
       };
 
-      Promise.race([Promise.all([fonts, pageLoad, minimum]), ceiling]).then(() => {
+      Promise.race([Promise.all([fonts, domReady, minimum]), ceiling]).then(() => {
         if (cancelled) return;
         gsap.to(progress, {
           v: 100,
