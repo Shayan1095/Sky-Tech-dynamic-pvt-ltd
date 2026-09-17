@@ -327,7 +327,7 @@ export default function ContactHero() {
                         {...(c.term === "Website" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                         // Contact details are never truncated: they wrap if a
                         // screen is too narrow to fit them on one line.
-                        className="group relative mt-1 inline-block max-w-full break-words font-display text-[1rem] font-medium tracking-[-0.01em] text-text transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-[1.2rem]"
+                        className="group relative mt-1 inline-block max-w-full break-words py-1.5 font-display text-[1rem] font-medium tracking-[-0.01em] text-text transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-[1.2rem]"
                       >
                         {c.label}
                         <span aria-hidden="true" className="absolute inset-x-0 -bottom-0.5 h-px origin-left scale-x-0 bg-primary transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100 group-focus-visible:scale-x-100" />
@@ -377,7 +377,7 @@ export default function ContactHero() {
         <div className={`ch-cue pb-12 pt-6 sm:pb-16 ${INSET}`}>
           <a
             href="#contact-form"
-            className="group inline-flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.22em] text-text/70 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            className="group inline-flex items-center gap-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-text/70 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
           >
             Contact Form
             <span aria-hidden="true" className="flex flex-col items-center gap-[1px] text-primary">

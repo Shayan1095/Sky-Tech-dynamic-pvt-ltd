@@ -55,7 +55,7 @@ export default function ApproachPillar({ pillar }: { pillar: Pillar }) {
 
         <Link
           href={pillar.href}
-          className="mt-4 inline-flex w-fit sm:mt-5 items-center gap-2 rounded-full text-sm text-[var(--ap-blue)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--ap-blue)]"
+          className="mt-4 inline-flex w-fit sm:mt-5 items-center gap-2 rounded-full py-2.5 text-sm text-[var(--ap-blue)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--ap-blue)]"
         >
           Explore {pillar.title}
           <span

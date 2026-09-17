@@ -242,12 +242,12 @@ export default function ContactForm() {
       if (requested && isService(requested)) setService(requested);
     }
     setStep(2);
-    requestAnimationFrame(() => stepRefs.current[1]?.querySelector<HTMLElement>("h4")?.focus());
+    requestAnimationFrame(() => stepRefs.current[1]?.querySelector<HTMLElement>("h3")?.focus());
   };
 
   const goBack = () => {
     setStep(1);
-    requestAnimationFrame(() => stepRefs.current[0]?.querySelector<HTMLElement>("h4")?.focus());
+    requestAnimationFrame(() => stepRefs.current[0]?.querySelector<HTMLElement>("h3")?.focus());
   };
 
   /* Client check first; the server checks again. The action is dispatched
@@ -274,9 +274,9 @@ export default function ContactForm() {
   const stepHeader = (n: 1 | 2, title: string) => (
     <div className="flex items-baseline gap-4">
       <span className="font-mono text-[12px] tracking-[0.14em] text-primary">0{n}</span>
-      <h4 tabIndex={-1} className="font-display text-[1.35rem] font-semibold tracking-[-0.015em] text-text outline-none sm:text-[1.5rem]">
+      <h3 tabIndex={-1} className="font-display text-[1.35rem] font-semibold tracking-[-0.015em] text-text outline-none sm:text-[1.5rem]">
         {title}
-      </h4>
+      </h3>
       <span className="ml-auto font-mono text-[11px] uppercase tracking-[0.18em] text-text/45">
         Step {n} of 2
       </span>

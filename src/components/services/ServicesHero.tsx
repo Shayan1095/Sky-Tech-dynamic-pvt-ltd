@@ -239,7 +239,7 @@ export default function ServicesHero() {
 
               <Link
                 href="/contact"
-                className="sh-action group relative inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-text/75 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-xs"
+                className="sh-action group relative inline-flex items-center gap-3 py-3.5 font-mono text-[11px] uppercase tracking-[0.2em] text-text/75 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:text-xs"
               >
                 Talk to Our Team
                 <svg viewBox="0 0 16 16" className="h-[13px] w-[13px] transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1" fill="none" aria-hidden="true">
@@ -334,7 +334,7 @@ export default function ServicesHero() {
         <div className={`sh-cue pb-12 pt-6 sm:pb-16 ${INSET}`}>
           <a
             href="#what-we-do"
-            className="group inline-flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.22em] text-text/70 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            className="group inline-flex items-center gap-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-text/70 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
           >
             What We Do
             <span aria-hidden="true" className="flex flex-col items-center gap-[1px] text-primary">

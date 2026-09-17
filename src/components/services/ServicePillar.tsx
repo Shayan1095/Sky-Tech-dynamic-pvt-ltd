@@ -105,7 +105,7 @@ function ServiceCard({
 
           <a
             href={serviceHref(service)}
-            className="group/link mt-7 inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--pil-ink)] transition-colors duration-300 hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pil-ink)]"
+            className="group/link -mb-3.5 mt-3.5 inline-flex items-center gap-3 py-3.5 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--pil-ink)] transition-colors duration-300 hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pil-ink)]"
           >
             Explore {service.name}
             <svg viewBox="0 0 16 16" className="h-[13px] w-[13px] transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover/link:translate-x-1" fill="none" aria-hidden="true">

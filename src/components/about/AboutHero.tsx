@@ -310,7 +310,7 @@ export default function AboutHero() {
           <div className="about-hero-cue">
             <Link
               href="#our-story"
-              className="group inline-flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.22em] text-text/70 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+              className="group inline-flex items-center gap-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-text/70 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
             >
               Our Story
               <span

@@ -314,8 +314,8 @@ export default function Navbar() {
 
         <div className="menu-foot relative mx-4 flex flex-col gap-5 px-5 pb-10 pt-8 sm:mx-6 sm:px-8">
           <div className="flex flex-col gap-2 font-mono text-[12px] tracking-[0.1em]">
-            <a href={PHONE.href} className="text-white/75 hover:text-cta">{PHONE.label}</a>
-            <a href={EMAIL.href} className="text-white/75 hover:text-cta">{EMAIL.label}</a>
+            <a href={PHONE.href} className="inline-block py-1.5 text-white/75 hover:text-cta">{PHONE.label}</a>
+            <a href={EMAIL.href} className="inline-block py-1.5 text-white/75 hover:text-cta">{EMAIL.label}</a>
           </div>
           <Link
             href="/contact/"

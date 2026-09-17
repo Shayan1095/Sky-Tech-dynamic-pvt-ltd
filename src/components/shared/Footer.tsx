@@ -106,7 +106,7 @@ function SweepLink({
       />
     </>
   );
-  const cls = `group relative inline-block text-white/75 transition-colors duration-300 hover:text-white focus-visible:text-white focus-visible:outline-none ${className}`;
+  const cls = `group relative inline-block py-1.5 text-white/75 transition-colors duration-300 hover:text-white focus-visible:text-white focus-visible:outline-none ${className}`;
 
   if (external || href.startsWith("tel:") || href.startsWith("mailto:")) {
     return (
