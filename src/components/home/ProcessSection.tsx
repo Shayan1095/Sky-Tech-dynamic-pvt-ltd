@@ -75,12 +75,18 @@ export default function ProcessSection() {
         bottom: c.offsetTop + c.offsetHeight,
       }));
 
+      // One cubic curve per handover. The rounded control points are kept so
+      // the arc-length table below follows exactly the path that is drawn.
+      const r1 = (n: number) => Number(n.toFixed(1));
+      const curves: number[][] = [];
       let d = "";
       for (let i = 0; i < a.length - 1; i += 1) {
         const s = a[i];
         const e = a[i + 1];
         const k = Math.max(26, (e.top - s.bottom) * 0.62);
-        d += `M ${s.x.toFixed(1)} ${s.bottom.toFixed(1)} C ${s.x.toFixed(1)} ${(s.bottom + k).toFixed(1)}, ${e.x.toFixed(1)} ${(e.top - k).toFixed(1)}, ${e.x.toFixed(1)} ${e.top.toFixed(1)} `;
+        const c = [s.x, s.bottom, s.x, s.bottom + k, e.x, e.top - k, e.x, e.top].map(r1);
+        curves.push(c);
+        d += `M ${c[0]} ${c[1]} C ${c[2]} ${c[3]}, ${c[4]} ${c[5]}, ${c[6]} ${c[7]} `;
       }
       if (!d) return;
 
@@ -137,20 +143,59 @@ export default function ProcessSection() {
       lit.style.strokeDasharray = String(len);
       lit.style.strokeDashoffset = String(len);
 
-      // arc-length at which the head reaches each card
-      const marks = a.map((c) => {
-        let best = 0;
-        let bestD = Infinity;
-        for (let l = 0; l <= len; l += 5) {
-          const pt = lit.getPointAtLength(l);
-          const dd = (pt.x - c.x) ** 2 + (pt.y - c.top) ** 2;
-          if (dd < bestD) {
-            bestD = dd;
-            best = l;
-          }
+      /* Arc-length table, computed from the curve maths. Asking the browser
+         for points (getPointAtLength) every 5px for every card froze the page
+         for seconds on desktop, and once per scroll frame slowed the scrub;
+         a table lookup gives the same points in microseconds. Each curve is
+         sampled finely and the table is scaled to the browser's own length,
+         so the head stays locked to the drawn stroke. */
+      const STEPS = 64;
+      const table: { l: number; x: number; y: number }[] = [];
+      const curveEnds: number[] = [];
+      let travelled = 0;
+      curves.forEach(([x0, y0, x1, y1, x2, y2, x3, y3]) => {
+        // A new subpath (M) jumps to the next card without adding length.
+        table.push({ l: travelled, x: x0, y: y0 });
+        let px = x0;
+        let py = y0;
+        for (let j = 1; j <= STEPS; j += 1) {
+          const t = j / STEPS;
+          const mt = 1 - t;
+          const x = mt * mt * mt * x0 + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3;
+          const y = mt * mt * mt * y0 + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3;
+          travelled += Math.hypot(x - px, y - py);
+          table.push({ l: travelled, x, y });
+          px = x;
+          py = y;
         }
-        return best;
+        curveEnds.push(travelled);
       });
+      const scale = travelled > 0 ? len / travelled : 1;
+      table.forEach((p) => (p.l *= scale));
+
+      const pointAt = (at: number) => {
+        let lo = 0;
+        let hi = table.length - 1;
+        if (at <= table[0].l) return table[0];
+        if (at >= table[hi].l) return table[hi];
+        while (lo < hi) {
+          const mid = (lo + hi) >> 1;
+          if (table[mid].l < at) lo = mid + 1;
+          else hi = mid;
+        }
+        const p = table[lo - 1];
+        const q = table[lo];
+        const span = q.l - p.l;
+        if (span <= 0) return q;
+        const f = (at - p.l) / span;
+        return { x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f };
+      };
+
+      // Arc-length at which the head reaches each card: the end of the curve
+      // arriving at its pin, on the same 5px grid the marks always used.
+      const marks = a.map((_, i) =>
+        i === 0 ? 0 : Math.floor((curveEnds[i - 1] * scale) / 5) * 5
+      );
 
       weaveST = ScrollTrigger.create({
         trigger: track,
@@ -160,7 +205,7 @@ export default function ProcessSection() {
         onUpdate: (self) => {
           const at = len * self.progress;
           lit.style.strokeDashoffset = String(len - at);
-          const pt = lit.getPointAtLength(at);
+          const pt = pointAt(at);
           head.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
           head.style.opacity =
             self.progress > 0.002 && self.progress < 0.998 ? "1" : "0";
@@ -448,7 +493,9 @@ export default function ProcessSection() {
       if (geometrySignature() !== signature) buildAll();
     }, 500);
 
-    document.fonts?.ready.then(() => buildAll(true));
+    // Web fonts can re-wrap the cards; rebuild only if they actually moved,
+    // rather than repeating the whole build and a page-wide refresh.
+    document.fonts?.ready.then(() => buildAll());
 
     return () => {
       window.clearTimeout(debounce);

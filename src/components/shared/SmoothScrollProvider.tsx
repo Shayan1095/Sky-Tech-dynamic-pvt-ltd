@@ -26,6 +26,26 @@ export default function SmoothScrollProvider({
   );
   const lenisRef = useRef<LenisRef>(null);
 
+  /* Sections measure their own scroll ranges as they mount, but the pinned
+     sections (Approach, Services, Our Story) add their scroll length to the
+     page afterwards, which pushes everything below them down. One refresh
+     once the whole tree has mounted puts every range back where it belongs;
+     a second one after web fonts settle covers text re-wrapping. Without
+     this, sections below a pin animate against stale positions — the Process
+     route finished ~2000px before the section was even on screen. */
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = () => {
+      if (!cancelled) ScrollTrigger.refresh();
+    };
+    const frame = requestAnimationFrame(refresh);
+    document.fonts?.ready.then(refresh);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
   useEffect(() => {
     if (!smoothScrollEnabled) return;
 

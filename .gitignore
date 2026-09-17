@@ -15,6 +15,10 @@
 
 # next.js
 /.next/
+# Any alternate build directory. Tailwind v4 discovers its sources by
+# walking the project and honouring .gitignore, so a build folder left
+# unignored gets scanned and its binary chunks become garbage utilities.
+/.next-*/
 /out/
 
 # production

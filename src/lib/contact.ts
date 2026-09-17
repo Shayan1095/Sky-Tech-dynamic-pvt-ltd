@@ -283,3 +283,41 @@ export type ContactResult =
   | { status: "invalid"; errors: ContactErrors }
   | { status: "success" }
   | { status: "unavailable" };
+
+/* ---------------------------------------------------------------------------
+   Enquiry type.
+
+   Most visitors arrive from a single service link (/contact?service=Google
+   Ads). Two entry points mean something different: the Services page's
+   combination builder sends ?type=package, and its consultation links send
+   ?type=consultation. Carrying that through to the inbox is what lets a
+   package request be told apart from a one-service enquiry, so it is a real
+   submitted value — and, like every submitted value, it is only trusted
+   after it has been matched against this list.
+   ------------------------------------------------------------------------ */
+export const ENQUIRY_TYPES = ["package", "consultation"] as const;
+
+export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
+
+export function isEnquiryType(value: string): value is EnquiryType {
+  return (ENQUIRY_TYPES as readonly string[]).includes(value);
+}
+
+/* Anything unrecognised — including a tampered POST — becomes "". */
+export function readEnquiryType(data: FormData): EnquiryType | "" {
+  const value = data.get("enquiry");
+  return typeof value === "string" && isEnquiryType(value) ? value : "";
+}
+
+/* What the visitor is shown once they arrive, so the context they clicked
+   from is visibly carried over instead of silently dropped. */
+export const ENQUIRY_LABELS: Record<EnquiryType, { badge: string; note: string }> = {
+  package: {
+    badge: "Package Enquiry",
+    note: "You're asking about a combined service package — tell us which services you have in mind below and we'll price them together.",
+  },
+  consultation: {
+    badge: "Free Consultation",
+    note: "You're booking a free consultation. Share as much or as little as you like — we'll take it from there.",
+  },
+};

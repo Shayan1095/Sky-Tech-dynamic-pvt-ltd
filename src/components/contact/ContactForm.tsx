@@ -8,14 +8,18 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
 } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { submitContact } from "@/app/contact/actions";
 import ServiceSelect from "@/components/contact/ServiceSelect";
+import { combinationLabel, findCombination } from "@/lib/packages";
 import {
   CUSTOM_BUDGET,
+  ENQUIRY_LABELS,
   FIELD_LIMITS,
+  isEnquiryType,
   isService,
   packagesFor,
   STEP_ONE,
@@ -33,6 +37,31 @@ const useIsomorphicLayoutEffect =
 
 const FRAME = "mx-4 sm:mx-6 lg:mx-8 xl:mx-auto xl:max-w-6xl";
 const INSET = "px-5 sm:px-8 lg:px-12";
+
+/* The enquiry type is read straight from the address bar rather than kept in
+   state, so there is nothing to synchronise and no effect to run. The server
+   renders no badge; the client renders one the moment it knows the URL. */
+const noSubscribe = () => () => {};
+function useEnquiryType() {
+  const value = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(window.location.search).get("type") ?? "",
+    () => ""
+  );
+  return isEnquiryType(value) ? value : null;
+}
+/* The Services page's combination chooser adds &package=<slug>. The slug is
+   resolved against the list rather than trusted, so nothing arbitrary from
+   the query string can reach the form or the inbox. */
+function useChosenPackage() {
+  const slug = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(window.location.search).get("package") ?? "",
+    () => ""
+  );
+  return slug ? findCombination(slug) : undefined;
+}
+
 const ERROR = "text-[#b42318]";
 
 const PHONE = { label: "+92 333 567 3810", href: "tel:+923335673810" };
@@ -127,6 +156,12 @@ export default function ContactForm() {
   const packages = packagesFor(service);
 
   const [state, formAction, pending] = useActionState(submitContact, initialState);
+
+  /* /contact?type=package and ?type=consultation arrive from the Services
+     page. The visitor sees what they clicked reflected back, and the value
+     travels with the submission so the inbox can tell the two apart. */
+  const enquiryType = useEnquiryType();
+  const chosenPackage = useChosenPackage();
 
   /* Section entrance, once. */
   useIsomorphicLayoutEffect(() => {
@@ -324,6 +359,46 @@ export default function ContactForm() {
                 </div>
               ) : (
                 <form ref={formRef} onSubmit={onSubmit} noValidate className="mt-8">
+                  {/* The context the visitor arrived with, carried into the
+                      submission. Rendered only for a recognised type. */}
+                  {enquiryType && (
+                    <>
+                      <input type="hidden" name="enquiry" value={enquiryType} />
+                      {chosenPackage && (
+                        <input type="hidden" name="package" value={combinationLabel(chosenPackage)} />
+                      )}
+                      <div className="mt-8 flex items-start gap-4 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5">
+                        <span aria-hidden="true" className="mt-[3px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
+                            <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[13px] leading-relaxed text-text/70">
+                            <span className="mr-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary">
+                              {ENQUIRY_LABELS[enquiryType].badge}
+                            </span>
+                            <span className="[text-wrap:pretty]">{ENQUIRY_LABELS[enquiryType].note}</span>
+                          </p>
+
+                          {/* The exact combination chosen on the Services page,
+                              shown back so the visitor can see it carried over
+                              and know what the inbox will receive. */}
+                          {chosenPackage && (
+                            <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-[14px] font-medium tracking-[-0.01em] text-text">
+                              {chosenPackage.parts.map((part, i) => (
+                                <span key={part} className="flex items-center gap-2">
+                                  {i > 0 && <span aria-hidden="true" className="font-mono text-primary">+</span>}
+                                  {part}
+                                </span>
+                              ))}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   {/* Honeypot — hidden from people and assistive tech */}
                   <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
                     <label>

@@ -15,17 +15,38 @@ const OPEN = "inset(0 0% 0 0)";
 const FRAME = "mx-4 sm:mx-6 lg:mx-8 xl:mx-auto xl:max-w-6xl";
 const INSET = "px-5 sm:px-8 lg:px-12";
 
-const STORY =
-  "SKY Tech started with a simple observation: most businesses don't fail because of bad ideas — they fail because their technology, marketing, and operations never work together. We built SKY Tech to close that gap, combining software development, design, and digital marketing under one roof so businesses can move faster without juggling multiple vendors.";
-
-const WORDS = STORY.split(" ");
-const at = (word: string) => WORDS.indexOf(word);
+/* The story, split into reading-sized phrases. The eye takes a whole phrase
+   at once, so the paragraph reads deliberately instead of ticking along one
+   word at a time. Joined with single spaces these are the paragraph exactly
+   as written in src/content/about.md — the copy is never edited here. */
+const PHRASES = [
+  "SKY Tech started",
+  "with a simple observation:",
+  "most businesses don't fail",
+  "because of bad ideas —",
+  "they fail because their",
+  "technology,",
+  "marketing, and",
+  "operations",
+  "never work together.",
+  "We built SKY Tech to",
+  "close that gap,",
+  "combining software development,",
+  "design, and digital marketing",
+  "under one roof",
+  "so businesses can move faster",
+  "without juggling multiple vendors.",
+];
 
 /* The two phrases the story turns on: the problem, and the answer. */
-const MARKS: Array<{ from: number; to: number; tone: "problem" | "answer" }> = [
-  { from: at("never"), to: at("together."), tone: "problem" },
-  { from: at("under"), to: at("roof"), tone: "answer" },
-];
+const MARK_TONES: Record<number, "problem" | "answer"> = {
+  8: "problem", // "never work together."
+  13: "answer", // "under one roof"
+};
+
+/* Which phrase a word belongs to — the diagram's beats are placed by it, so
+   every visual change lands on the phrase that describes it. */
+const beat = (needle: string) => PHRASES.findIndex((p) => p.includes(needle));
 
 /* ---------------------------------------------------------------- Diagram --
    Three disciplines named in the story. They start loosely linked, drift
@@ -86,7 +107,7 @@ const GREY_APART = halfLines(APART, 0.12);
 
 const GREY = "rgba(18, 18, 18, 0.34)";
 const BLUE = "#006bb8";
-const STEP = 0.1; // timeline seconds per word
+const STEP = 0.24; // timeline seconds per phrase — the section's pace dial
 
 export default function AboutStory() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -127,63 +148,96 @@ export default function AboutStory() {
           0.15
         );
 
-      /* Words resolve from a faint ghost to full ink, and the two key
+      /* Phrases resolve from a faint ghost to full ink, and the two key
          phrases are underlined as they are read. */
-      const addWords = (tl: gsap.core.Timeline) => {
+      const addPhrases = (tl: gsap.core.Timeline) => {
         tl.fromTo(
-          q(".story-word"),
+          q(".story-phrase"),
           { opacity: 0.16 },
-          { opacity: 1, duration: 0.3, stagger: STEP, ease: "none" },
+          { opacity: 1, duration: 0.45, stagger: STEP, ease: "none" },
           0
         );
-        MARKS.forEach((m, i) => {
-          tl.fromTo(
-            q(".story-mark")[i],
-            { backgroundSize: "0% 2px" },
-            {
-              backgroundSize: "100% 2px",
-              duration: (m.to - m.from + 1) * STEP + 0.15,
-              ease: "none",
-            },
-            m.from * STEP
-          );
-        });
+        // Document order, so the underlines match the phrases they belong to.
+        Object.keys(MARK_TONES)
+          .map(Number)
+          .sort((a, b) => a - b)
+          .forEach((phrase, i) => {
+            tl.fromTo(
+              q(".story-mark")[i],
+              { backgroundSize: "0% 2px" },
+              { backgroundSize: "100% 2px", duration: 0.5, ease: "none" },
+              phrase * STEP
+            );
+          });
       };
 
-      /* The diagram, keyed to the same word positions, less `shift` when it
-         runs on its own scroll range. */
-      const addDiagram = (tl: gsap.core.Timeline, shift = 0) => {
-        const t = (word: string, plus = 0) =>
-          Math.max(0, at(word) * STEP + plus - shift);
+      /* The diagram, on the same clock as the words: every beat is placed at
+         the word it illustrates, so a phrase and its effect land on the same
+         frame. Beats never overlap on the same property, and the last one
+         (the ring) finishes well before the timeline ends, so the diagram is
+         visibly complete rather than still resolving as it leaves. */
+      const addDiagram = (tl: gsap.core.Timeline) => {
+        const t = (word: string, plus = 0) => Math.max(0, beat(word) * STEP + plus);
         const nodes = q(".story-node");
         const greys = q(".story-grey");
         const pills = q(".story-pill");
+
+        /* The opening, one beat per phrase, so the diagram is building the
+           whole time the first lines are read rather than sitting still:
+           the drafting guide and centre mark arrive, the three disciplines
+           travel out from the centre, then the loose links appear. */
+        tl.fromTo(
+          q(".story-orbit"),
+          { opacity: 0, scale: 0.92, svgOrigin: `${C.x} ${C.y}` },
+          { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" },
+          0
+        ).fromTo(
+          q(".story-cross"),
+          { opacity: 0, scale: 0, svgOrigin: `${C.x} ${C.y}` },
+          { opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" },
+          0.1
+        );
+
+        /* Scales an inner group, never .story-node itself: the drift below
+           moves .story-node with x/y, and a scale origin on the same element
+           leaves a residual offset that lands the pills off their marks.
+           Scaling about the hub makes each pill travel outward into place. */
+        NODES.forEach((_, i) => {
+          tl.fromTo(
+            q(".story-node-in")[i],
+            { opacity: 0, scale: 0.35, svgOrigin: `${C.x} ${C.y}` },
+            { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" },
+            i * STEP
+          );
+        });
+
+        // The loose links between them, still grey and dashed.
+        tl.fromTo(
+          greys,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, stagger: 0.05, ease: "none" },
+          3 * STEP
+        );
 
         // Each discipline sharpens as the story names it.
         NODES.forEach((n, i) => {
           tl.fromTo(
             q(".story-label")[i],
             { opacity: 0.4 },
-            { opacity: 1, duration: 0.3 },
+            { opacity: 1, duration: 0.25 },
             t(n.word)
           );
         });
-        tl.fromTo(
-          pills,
-          { stroke: GREY },
-          { stroke: BLUE, duration: 0.5, ease: "none" },
-          t("close", 0.1)
-        );
 
         // "…never work together." — they drift apart, the links break.
-        const drift = t("technology,");
+        const drift = t("never");
         NODES.forEach((n, i) => {
           tl.to(
             nodes[i],
             {
               x: APART[n.key][0] - TIGHT[n.key][0],
               y: APART[n.key][1] - TIGHT[n.key][1],
-              duration: 0.9,
+              duration: 0.35,
               ease: "power1.inOut",
             },
             drift
@@ -192,39 +246,49 @@ export default function AboutStory() {
         greys.forEach((line, i) => {
           tl.fromTo(
             line,
-            { attr: GREY_TIGHT[i], opacity: 1 },
-            { attr: GREY_APART[i], duration: 0.9, ease: "power1.inOut" },
+            // Opacity is owned by the beat above, so the links stay hidden
+            // until they are drawn in rather than showing from the start.
+            { attr: GREY_TIGHT[i] },
+            { attr: GREY_APART[i], duration: 0.35, ease: "power1.inOut" },
             drift
           );
         });
 
-        // "We built SKY Tech to close that gap" — pulled back together.
+        // "…to close that gap" — pulled back together, and reconnected.
         const close = t("close");
         NODES.forEach((_, i) => {
           tl.to(
             nodes[i],
-            { x: 0, y: 0, duration: 0.8, ease: "power2.inOut" },
+            { x: 0, y: 0, duration: 0.55, ease: "power2.inOut" },
             close
           );
         });
-        tl.to(greys, { opacity: 0, duration: 0.35, ease: "none" }, close + 0.25)
+        tl.fromTo(
+          pills,
+          { stroke: GREY },
+          { stroke: BLUE, duration: 0.4, ease: "none" },
+          close
+        )
+          .to(greys, { opacity: 0, duration: 0.25, ease: "none" }, close + 0.15)
           .fromTo(
             q(".story-link"),
             { drawSVG: "50% 50%" },
-            { drawSVG: "0% 100%", duration: 0.6, stagger: 0.08, ease: "power2.out" },
-            close + 0.45
+            { drawSVG: "0% 100%", duration: 0.4, stagger: 0.06, ease: "power2.out" },
+            close + 0.3
           )
           .fromTo(
             q(".story-hub"),
             { scale: 0, opacity: 0, svgOrigin: `${C.x} ${C.y}` },
-            { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
-            t("gap,", 0.15)
+            { scale: 1, opacity: 1, duration: 0.35, ease: "power3.out" },
+            close + 0.45
           )
           // "…under one roof" — one ring closes around the whole system.
           .fromTo(
             q(".story-ring"),
             { drawSVG: "0%" },
-            { drawSVG: "100%", duration: 1, ease: "power2.inOut" },
+            // Drawn over a longer beat than the words it spans, so the final
+            // close reads as a settle rather than a snap.
+            { drawSVG: "100%", duration: 0.95, ease: "power2.inOut" },
             t("under")
           );
       };
@@ -237,17 +301,20 @@ export default function AboutStory() {
          diagram land on the same frame. */
       mm.add("(min-width: 1024px) and (min-height: 760px)", () => {
         const tl = gsap.timeline();
-        addWords(tl);
+        addPhrases(tl);
         addDiagram(tl);
-        tl.to({}, { duration: 0.6 }); // hold on the finished state
+        // The last tenth of the range rests on the completed story and
+        // diagram, so the section lands rather than cutting away mid-reveal.
+        tl.to({}, { duration: 0.5 });
 
         const st = ScrollTrigger.create({
           trigger: q(".story-stage")[0],
           start: () => `center center+=${headerOffset()}`,
-          end: "+=1500",
+          end: "+=1150",
           pin: true,
-          anticipatePin: 1,
           scrub: 0.6,
+          // Pins add scroll length, so they recalculate before sections below.
+          refreshPriority: 1,
           animation: tl,
           invalidateOnRefresh: true,
         });
@@ -269,17 +336,23 @@ export default function AboutStory() {
             scrub: 0.5,
           },
         });
-        addWords(words);
+        addPhrases(words);
 
+        /* The diagram plays the whole story on its own range. It ends while
+           the diagram is still fully on screen (bottom at 60% of the
+           viewport, top around 20%), so the ring visibly closes instead of
+           finishing as the section leaves the top of the screen. */
         const diagram = gsap.timeline({
           scrollTrigger: {
             trigger: q(".story-diagram")[0],
-            start: "top 85%",
-            end: "bottom 45%",
-            scrub: 0.5,
+            start: "top 95%",
+            end: "bottom 55%",
+            scrub: 0.35,
+            invalidateOnRefresh: true,
           },
         });
-        addDiagram(diagram, at("technology,") * STEP - 0.1);
+        addDiagram(diagram);
+        diagram.to({}, { duration: 0.4 }); // hold on the finished state
 
         return () => {
           words.scrollTrigger?.kill();
@@ -296,33 +369,23 @@ export default function AboutStory() {
     };
   }, []);
 
-  /* Words, grouped so the two key phrases sit inside an underline span that
-     can wrap across lines. */
-  const segments: Array<{ words: Array<[string, number]>; tone?: "problem" | "answer" }> = [];
-  let i = 0;
-  while (i < WORDS.length) {
-    const mark = MARKS.find((m) => m.from === i);
-    if (mark) {
-      segments.push({
-        words: WORDS.slice(mark.from, mark.to + 1).map((w, k) => [w, mark.from + k]),
-        tone: mark.tone,
-      });
-      i = mark.to + 1;
-    } else {
-      const last = segments[segments.length - 1];
-      if (last && !last.tone) last.words.push([WORDS[i], i]);
-      else segments.push({ words: [[WORDS[i], i]] });
-      i += 1;
-    }
-  }
-
-  const renderWords = (words: Array<[string, number]>) =>
-    words.map(([w, n], k) => (
-      <span key={n}>
-        <span className="story-word">{w}</span>
-        {k < words.length - 1 ? " " : null}
-      </span>
-    ));
+  /* One span per phrase. The two key phrases sit inside an underline span
+     that can still wrap across lines. */
+  const renderPhrases = () =>
+    PHRASES.map((phrase, p) => {
+      const tone = MARK_TONES[p];
+      const text = <span className="story-phrase">{phrase}</span>;
+      return (
+        <span key={p}>
+          {tone ? (
+            <span className={`story-mark story-mark--${tone}`}>{text}</span>
+          ) : (
+            text
+          )}
+          {p < PHRASES.length - 1 ? " " : null}
+        </span>
+      );
+    });
 
   return (
     <section
@@ -359,18 +422,7 @@ export default function AboutStory() {
 
             <div className="mt-10 grid items-center gap-14 lg:mt-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
               <p className="story-body font-display text-[1.35rem] font-medium leading-[1.38] tracking-[-0.012em] text-text [text-wrap:pretty] sm:text-[1.6rem] lg:text-[1.7rem] lg:leading-[1.36]">
-                {segments.map((seg, s) => (
-                  <span key={s}>
-                    {seg.tone ? (
-                      <span className={`story-mark story-mark--${seg.tone}`}>
-                        {renderWords(seg.words)}
-                      </span>
-                    ) : (
-                      renderWords(seg.words)
-                    )}
-                    {s < segments.length - 1 ? " " : null}
-                  </span>
-                ))}
+                {renderPhrases()}
               </p>
 
               <div className="story-diagram mx-auto w-full max-w-[420px] lg:max-w-[480px]">
@@ -380,8 +432,10 @@ export default function AboutStory() {
                   fill="none"
                   aria-hidden="true"
                 >
-                  {/* Static drafting guides: a faint orbit and a centre mark */}
+                  {/* Drafting guides: a faint orbit and a centre mark, the
+                      diagram's first beat as the story opens. */}
                   <circle
+                    className="story-orbit"
                     cx={C.x}
                     cy={C.y}
                     r={RING_R}
@@ -389,6 +443,7 @@ export default function AboutStory() {
                     strokeDasharray="2 6"
                   />
                   <path
+                    className="story-cross"
                     d={`M${C.x - 6} ${C.y}h12M${C.x} ${C.y - 6}v12`}
                     stroke="rgba(18,18,18,0.25)"
                   />
@@ -460,28 +515,32 @@ export default function AboutStory() {
                     const [x, y] = TIGHT[n.key];
                     return (
                       <g key={n.key} className="story-node">
-                        <rect
-                          className="story-pill"
-                          x={x - PILL.w / 2}
-                          y={y - PILL.h / 2}
-                          width={PILL.w}
-                          height={PILL.h}
-                          rx={PILL.h / 2}
-                          fill="#ffffff"
-                          stroke={BLUE}
-                          strokeWidth="1.2"
-                        />
-                        <text
-                          className="story-label font-mono"
-                          x={x}
-                          y={y + 3.6}
-                          textAnchor="middle"
-                          fill="#121212"
-                          fontSize="10.5"
-                          letterSpacing="0.14em"
-                        >
-                          {n.label.toUpperCase()}
-                        </text>
+                        {/* Inner group carries the entrance scale; the outer
+                            one is moved by the drift. */}
+                        <g className="story-node-in">
+                          <rect
+                            className="story-pill"
+                            x={x - PILL.w / 2}
+                            y={y - PILL.h / 2}
+                            width={PILL.w}
+                            height={PILL.h}
+                            rx={PILL.h / 2}
+                            fill="#ffffff"
+                            stroke={BLUE}
+                            strokeWidth="1.2"
+                          />
+                          <text
+                            className="story-label font-mono"
+                            x={x}
+                            y={y + 3.6}
+                            textAnchor="middle"
+                            fill="#121212"
+                            fontSize="10.5"
+                            letterSpacing="0.14em"
+                          >
+                            {n.label.toUpperCase()}
+                          </text>
+                        </g>
                       </g>
                     );
                   })}

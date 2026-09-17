@@ -254,8 +254,14 @@ export default function ValuePropsSection() {
       // rather than letting a fast scroll arrive at a pin that does nothing.
       const ensureCardsLanded = () => {
         if (cardsDone) return;
-        cards.progress(1);
         cardsDone = true;
+        // Snapping the entrance to its end teleported any card still on its
+        // way in (~60px in one frame). Run what is left of it fast instead.
+        if (cards.progress() > 0.98) {
+          cards.progress(1);
+          return;
+        }
+        cards.play().timeScale(6);
       };
 
       // Single-column phones stack cards with a narrow gap, so the pop is
@@ -319,13 +325,21 @@ export default function ValuePropsSection() {
       // apart because they read the same progress.
       mm.add("(min-width: 1024px)", () => {
         const railTl = buildRail(hSegs, "scaleX");
+        const header = document.querySelector<HTMLElement>("header");
+        // Centre the pinned cards in the space *below* the sticky header,
+        // rather than in the whole viewport — otherwise the top of the stage
+        // lands on the header's edge and a focused card lifts into it.
+        const headerOffset = () => Math.round((header?.offsetHeight ?? 0) / 2);
         const pin = ScrollTrigger.create({
           trigger: pinwrap,
-          start: "center center",
+          start: () => `center center+=${headerOffset()}`,
           end: "+=1100",
+          invalidateOnRefresh: true,
           pin: true,
-          anticipatePin: 1,
           scrub: 0.55,
+          // Pins add scroll length to the page, so they must recalculate
+          // before anything below them; higher priority refreshes earlier.
+          refreshPriority: 2,
           animation: railTl,
           onUpdate: (self) => {
             ensureCardsLanded();
@@ -447,7 +461,11 @@ export default function ValuePropsSection() {
             on screen while the relay runs. Grow sits half-width alone at
             tablet rather than spanning: a full-bleed cell would letterbox
             its trajectory SVG badly. */}
-        <div className="approach-pinwrap">
+        {/* flow-root: the cards' top margin would otherwise collapse out of
+            this box, and the moment GSAP pins it the margin moves back
+            inside — dropping the cards ~60px in a single frame. Containing
+            the margin keeps the spacing identical pinned and unpinned. */}
+        <div className="approach-pinwrap flow-root">
           <div className="approach-stage mt-14 grid grid-cols-1 gap-7 sm:mt-16 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {PILLARS.map((pillar) => (
               <ApproachPillar key={pillar.title} pillar={pillar} />

@@ -534,3 +534,740 @@ html[data-sky-seen] .sky-preloader {
     }
   }
 }
+
+/* Services hero. Like the About headline, this is sized from its own column
+   rather than the viewport: the phrases are masked and therefore unbreakable,
+   so "Automate Smarter." — the longest — has to fit the column at every width
+   or it would be shaved off by its own mask. */
+.services-hero-head {
+  container-type: inline-size;
+}
+.services-h1 {
+  /* 10.4cqi keeps the longest phrase at ~88% of its column. */
+  font-size: clamp(1.55rem, 10.4cqi, 3.85rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+@supports not (container-type: inline-size) {
+  .services-h1 {
+    font-size: clamp(1.55rem, 1rem + 2.6vw, 3.25rem);
+  }
+}
+
+/* Anchored sections clear the sticky header when jumped to from the hero. */
+.sky-anchor {
+  scroll-margin-top: 6rem;
+}
+
+/* The service index card is parallaxed while the hero scrolls. Its navy
+   ground, masked drafting grid, blurred shadow and translucent rules all
+   have to be composited together, and without its own layer the browser
+   re-rasterises the whole card on every frame - measured at 23fps through
+   the hero, against 60fps everywhere else on the page. Promoting it hands
+   the movement to the compositor and the card is painted once: 39fps, with
+   46fps being the ceiling if the parallax were dropped altogether. The
+   Process cards carry this for the same reason. */
+.sh-card-depth,
+.sh-card {
+  will-change: transform;
+}
+
+/* --- Service capability panels ---------------------------------------------
+   Each service's "What We Offer" list opens by animating its grid row track
+   from 0fr to 1fr, which the browser can interpolate — height:auto cannot.
+   The list stays in the DOM whether open or closed, so every capability is
+   still indexed; the collapsed panel is marked inert so keyboard users never
+   tab into content they cannot see. */
+.svc-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svc-panel[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.svc-panel > * {
+  overflow: hidden;
+}
+
+/* The toggle's registration mark turns from + into × as the panel opens. */
+.svc-mark {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[aria-expanded="true"] .svc-mark {
+  transform: rotate(45deg);
+}
+
+/* ============================================================================
+   SERVICE PILLARS
+   Each pillar carries its own identity through two CSS variables set on the
+   section: --pil-spark (its accent) and --pil-spark-2 (a second accent, used
+   only by pillar 03). Every colour here comes from the site palette —
+   #006BB8, #00C2FF, #0B1F35 — recombined, so nothing new enters the brand.
+
+   The panel is always navy underneath and the accent arrives as a corner
+   bleed rather than a gradient endpoint. That is deliberate: a full blue-to-
+   cyan gradient would put white text on #00C2FF at 2.2:1. Blended at 55% over
+   navy the brightest point still measures 4.9:1, and the copy sits on the
+   dark side regardless.
+   ========================================================================== */
+.pillar-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 28px;
+  background-image:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--pil-spark) 45%, transparent), transparent 62%),
+    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--pil-spark-2, var(--pil-spark)) 28%, transparent), transparent 58%),
+    linear-gradient(165deg, #0b1f35 0%, #0e2942 100%);
+  box-shadow:
+    0 2px 6px rgb(11 31 53 / 0.18),
+    0 42px 84px -46px rgb(11 31 53 / 0.75);
+  /* The panel is sticky, so it moves relative to its container for the whole
+     length of the section. Without its own compositor layer the browser
+     re-rasterises all of it — three gradients, a masked grid and a wide
+     shadow — on every frame: measured 36fps against 43fps promoted. Same
+     reason the hero's index card carries it. */
+  will-change: transform;
+}
+
+/* Drafting grid across the panel, fading out before it reaches the copy. */
+.pillar-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image:
+    linear-gradient(to right, #fff 1px, transparent 1px),
+    linear-gradient(to bottom, #fff 1px, transparent 1px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(130% 85% at 100% 0%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(130% 85% at 100% 0%, #000 0%, transparent 72%);
+}
+
+/* A single hairline of the pillar's accent along the panel's top edge. */
+.pillar-panel::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background-image: linear-gradient(90deg, transparent, var(--pil-spark), transparent);
+  opacity: 0.85;
+}
+
+/* The pillar's motif, drawn large and faint behind the copy. */
+.pillar-motif {
+  position: absolute;
+  z-index: -1;
+  right: -14%;
+  bottom: -12%;
+  width: 72%;
+  max-width: 260px;
+  color: var(--pil-spark);
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+/* Progress bar: the accent as a gradient rather than a flat fill. */
+.pillar-progress {
+  background-image: linear-gradient(90deg, var(--pil-spark), color-mix(in srgb, var(--pil-spark) 45%, #ffffff));
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --- Service cards --------------------------------------------------------
+   A gradient surface rather than flat white, an accent edge that grows when
+   the card is open, and a numeral that fills with the pillar's gradient once
+   it is the one you are reading. */
+.pillar-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image: linear-gradient(176deg, #ffffff 0%, #f7f9fc 100%);
+  box-shadow:
+    0 1px 2px rgb(18 18 18 / 0.04),
+    0 20px 44px -34px rgb(11 31 53 / 0.4);
+  transition:
+    box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The hover lift is keyed to --pil-glow rather than the pillar's own accent,
+   so every pillar's cards react identically. Pillar 01's accent is the deep
+   brand blue, which produced a noticeably duller lift than pillar 02's cyan
+   — the panels carry the colour identity, the cards behave the same. */
+.pillar-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--pil-glow, var(--pil-spark)) 38%, transparent);
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--pil-glow, var(--pil-spark)) 12%, transparent),
+    0 34px 64px -34px color-mix(in srgb, var(--pil-glow, var(--pil-spark)) 45%, transparent);
+}
+
+/* The accent edge: a hairline at rest, a full bar once the card is open. */
+.pillar-edge {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  background-image: linear-gradient(180deg, var(--pil-spark), color-mix(in srgb, var(--pil-spark) 25%, transparent));
+  transform: scaleX(0.34);
+  transform-origin: left center;
+  opacity: 0.45;
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pillar-card[data-open="true"] .pillar-edge {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* A wash of the accent behind an opened card, so the one you are reading
+   separates from the ones you are not. */
+.pillar-wash {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background-image: radial-gradient(95% 130% at 0% 0%, color-mix(in srgb, var(--pil-spark) 11%, transparent), transparent 62%);
+  transition: opacity 0.6s ease;
+}
+
+.pillar-card[data-open="true"] .pillar-wash {
+  opacity: 1;
+}
+
+.pillar-card[data-open="true"] .pillar-num {
+  background-image: linear-gradient(140deg, var(--pil-spark), #0b1f35);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- What We Do tiles -------------------------------------------------------
+   The inverse of a pillar section. There, a dark panel sits beside light
+   cards; here the three tiles are the dark objects, on a light ground. Same
+   vocabulary, opposite arrangement, so the index and the detail read as one
+   system without looking like the same section twice.
+
+   The accent bleeds from the BOTTOM-RIGHT — the pillar panel bleeds from the
+   top-right — which also keeps the copy in the top-left on near-navy. That
+   matters: white at 70% measures 8.7:1 there but only 3.0:1 over the bright
+   corner, so the corner is kept away from the text rather than dimmed. */
+.wwd-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image:
+    radial-gradient(115% 85% at 100% 100%, color-mix(in srgb, var(--pil-spark) 46%, transparent), transparent 62%),
+    radial-gradient(85% 65% at 0% 100%, color-mix(in srgb, var(--pil-spark-2, var(--pil-spark)) 22%, transparent), transparent 60%),
+    linear-gradient(200deg, #0e2942 0%, #0b1f35 100%);
+  box-shadow:
+    0 2px 6px rgb(11 31 53 / 0.16),
+    0 34px 70px -42px rgb(11 31 53 / 0.7);
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wwd-tile:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 4px 10px color-mix(in srgb, var(--pil-spark) 16%, transparent),
+    0 48px 88px -40px color-mix(in srgb, var(--pil-spark) 55%, transparent);
+}
+
+/* Drafting grid, fading out before it reaches the copy. */
+.wwd-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image:
+    linear-gradient(to right, #fff 1px, transparent 1px),
+    linear-gradient(to bottom, #fff 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(120% 80% at 100% 100%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(120% 80% at 100% 100%, #000 0%, transparent 70%);
+}
+
+/* The accent hairline sweeps the top edge on hover. */
+.wwd-tile::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background-image: linear-gradient(90deg, transparent, var(--pil-label), transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wwd-tile:hover::after,
+.wwd-tile:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* The motif sits top-right and small here, against the pillar panel's large
+   bottom-right watermark — the second signal that these are not the same
+   component wearing a different colour. */
+.wwd-motif {
+  position: absolute;
+  z-index: -1;
+  right: -6%;
+  top: -8%;
+  width: 46%;
+  max-width: 150px;
+  color: var(--pil-label);
+  opacity: 0.18;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.wwd-tile:hover .wwd-motif {
+  opacity: 0.3;
+}
+
+/* Pillar 03's tile lights both lower corners rather than one, so it reads as
+   a different object from pillar 02 despite sharing the cyan family. Both
+   stops are held at or below 40% so white at 80% still clears 5:1 over the
+   brightest point. */
+.wwd-tile[data-bleed="dual"] {
+  background-image:
+    radial-gradient(105% 78% at 100% 100%, color-mix(in srgb, var(--pil-spark) 40%, transparent), transparent 62%),
+    radial-gradient(105% 78% at 0% 100%, color-mix(in srgb, var(--pil-spark-2, var(--pil-spark)) 34%, transparent), transparent 62%),
+    linear-gradient(200deg, #0e2942 0%, #0b1f35 100%);
+}
+
+.wwd-tile[data-bleed="dual"]::before {
+  -webkit-mask-image: radial-gradient(120% 80% at 50% 100%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(120% 80% at 50% 100%, #000 0%, transparent 72%);
+}
+
+/* Pillar 03's panel lights both top corners instead of one. Pillars 02 and 03
+   share the cyan family — there are only so many accents legible on navy — so
+   the two panels are separated by the shape of the light, exactly as their
+   What We Do tiles are. Both stops sit at 38%, where white at 80% still
+   measures 5.3:1 over the brightest point. */
+.pillar-panel[data-bleed="dual"] {
+  background-image:
+    radial-gradient(95% 80% at 100% 0%, color-mix(in srgb, var(--pil-spark) 38%, transparent), transparent 60%),
+    radial-gradient(95% 80% at 0% 0%, color-mix(in srgb, var(--pil-spark-2, var(--pil-spark)) 38%, transparent), transparent 60%),
+    linear-gradient(165deg, #0b1f35 0%, #0e2942 100%);
+}
+
+.pillar-panel[data-bleed="dual"]::before {
+  -webkit-mask-image: radial-gradient(130% 80% at 50% 0%, #000 0%, transparent 74%);
+  mask-image: radial-gradient(130% 80% at 50% 0%, #000 0%, transparent 74%);
+}
+
+/* ============================================================================
+   OUR APPROACH (services page)
+   A single straight route through five stages, drawn as you scroll. The home
+   page already owns the zig-zag weave with its travelling dot, so this one is
+   deliberately the opposite: one rule, left to right on desktop and top to
+   bottom on phones, with each stage lighting as the line reaches it.
+
+   Progress arrives as --ap-p (0 to 1) on the section, set once per frame from
+   a scrubbed trigger. The fill is a transform, so nothing re-lays-out; the
+   lit states are toggled by class only when the count actually changes.
+   Prefixed svc- so none of this touches .sky-approach on the home page.
+   ========================================================================== */
+.svc-approach {
+  --ap-p: 0;
+}
+
+.svc-track {
+  position: absolute;
+  background: rgb(18 18 18 / 0.1);
+}
+
+.svc-fill {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, var(--color-primary), var(--color-cta));
+  transform: scaleX(var(--ap-p));
+  transform-origin: left center;
+}
+
+.svc-fill--v {
+  background-image: linear-gradient(180deg, var(--color-primary), var(--color-cta));
+  transform: scaleY(var(--ap-p));
+  transform-origin: top center;
+}
+
+/* The node: a drafting diamond, matching the capability marks in the pillar
+   cards. Unlit it is a hollow outline; lit it fills and throws a soft ring. */
+.svc-node {
+  position: relative;
+  display: block;
+  width: 14px;
+  height: 14px;
+  rotate: 45deg;
+  border: 1.5px solid rgb(18 18 18 / 0.18);
+  background: var(--color-bg);
+  transition:
+    border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.svc-step.is-lit .svc-node {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 5px rgb(0 107 184 / 0.12);
+}
+
+/* The final stage closes the route, so it reads in the accent rather than the
+   base blue — the line arrives at it. */
+.svc-step:last-child.is-lit .svc-node {
+  border-color: var(--color-cta);
+  background: var(--color-cta);
+  box-shadow: 0 0 0 5px rgb(0 194 255 / 0.16);
+}
+
+.svc-num {
+  color: rgb(18 18 18 / 0.3);
+  transition: color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.svc-step.is-lit .svc-num {
+  color: var(--color-primary);
+}
+
+.svc-stage {
+  color: rgb(18 18 18 / 0.55);
+  transition: color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.svc-step.is-lit .svc-stage {
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svc-fill {
+    transform: none;
+  }
+}
+
+
+/* ============================================================================
+   SERVICE COMBINATIONS
+   A chooser on the left, a live package panel on the right. The panel reuses
+   the page's dark language but in a new role — it is an output, not a header
+   — so its light comes from the opposite corner to the pillar panels and it
+   carries an action rather than a progress counter.
+   ========================================================================== */
+.pkg-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 28px;
+  background-image:
+    radial-gradient(100% 78% at 0% 0%, rgb(0 194 255 / 0.3), transparent 60%),
+    radial-gradient(95% 72% at 100% 100%, rgb(0 107 184 / 0.45), transparent 62%),
+    linear-gradient(145deg, #0e2942 0%, #0b1f35 100%);
+  box-shadow:
+    0 2px 6px rgb(11 31 53 / 0.18),
+    0 42px 84px -46px rgb(11 31 53 / 0.75);
+  /* Sticky on desktop, so it is repainted as it travels. Its own layer keeps
+     that off the main thread — the same fix the pillar panels carry. */
+  will-change: transform;
+}
+
+.pkg-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image:
+    linear-gradient(to right, #fff 1px, transparent 1px),
+    linear-gradient(to bottom, #fff 1px, transparent 1px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(120% 80% at 0% 0%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(120% 80% at 0% 0%, #000 0%, transparent 70%);
+}
+
+/* A chip is one service in the package. */
+.pkg-chip {
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: rgb(255 255 255 / 0.07);
+}
+
+/* The chooser rows. Selected gets an accent edge and a tint; the rest stay
+   quiet so the choice is unambiguous. */
+.pkg-row {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  border-top: 1px solid rgb(18 18 18 / 0.1);
+  transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pkg-row::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  background-image: linear-gradient(180deg, var(--color-primary), var(--color-cta));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pkg-row:hover {
+  background-color: rgb(0 107 184 / 0.03);
+}
+
+.pkg-row:has(input:checked) {
+  background-color: rgb(0 107 184 / 0.05);
+}
+
+.pkg-row:has(input:checked)::before {
+  transform: scaleX(1);
+}
+
+.pkg-row:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pkg-row .pkg-num {
+  color: rgb(18 18 18 / 0.3);
+  transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pkg-row:has(input:checked) .pkg-num {
+  color: var(--color-primary);
+}
+
+.pkg-plus {
+  color: var(--color-primary);
+}
+
+/* ============================================================================
+   FAQ
+   Ruled rows rather than cards. The pillars own the card language and Why
+   Choose owns the ruled grid, so this is the one narrow-measure column on the
+   page — which is also the right shape for reading a question and an answer.
+   The panel mechanics (.svc-panel, .svc-mark) are shared with the pillar
+   cards, so the open/close behaves identically wherever it appears.
+   ========================================================================== */
+.faq-row {
+  position: relative;
+  border-top: 1px solid rgb(18 18 18 / 0.1);
+}
+
+/* The accent arrives along the rule above the row, not as a left border —
+   the page has no left-accent cards and should not gain one here. */
+.faq-row::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-image: linear-gradient(90deg, var(--color-primary), var(--color-cta));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq-row:hover::before,
+.faq-row:has(button[aria-expanded="true"])::before {
+  transform: scaleX(1);
+}
+
+.faq-row .faq-num,
+.faq-row .faq-question {
+  transition: color 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq-row:hover .faq-num,
+.faq-row:has(button[aria-expanded="true"]) .faq-num {
+  color: var(--color-primary);
+}
+
+/* The last row closes the list, so the group reads as a bounded block. */
+.faq-list {
+  border-bottom: 1px solid rgb(18 18 18 / 0.1);
+}
+
+/* ============================================================================
+   WHY CHOOSE — drawing plates
+   The page already spends dark tiles, dark panels and cards, so these are the
+   opposite: light, bordered, and marked at all four corners like a drawing
+   plate. The oversized ghost numeral is the device — nothing else on the page
+   uses type as a graphic, which is what stops six reasons reading as a
+   generic feature grid.
+   ========================================================================== */
+.wc-plate {
+  position: relative;
+  isolation: isolate;
+  background-image: linear-gradient(168deg, #ffffff 0%, #f6f8fb 100%);
+  border: 1px solid rgb(18 18 18 / 0.09);
+  box-shadow:
+    0 1px 2px rgb(18 18 18 / 0.03),
+    0 18px 40px -32px rgb(11 31 53 / 0.38);
+  transition:
+    transform 550ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 550ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 550ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wc-plate:hover {
+    transform: translateY(-3px);
+    border-color: rgb(0 107 184 / 0.3);
+    box-shadow:
+      0 2px 6px rgb(0 107 184 / 0.07),
+      0 30px 58px -30px rgb(0 107 184 / 0.4);
+  }
+}
+
+/* The wash enters from the corner the numeral sits in, so the plate lights
+   from its own index rather than from nowhere. */
+/* Everything printed on the sheet lives inside this, so it is trimmed at the
+   plate's edge. The corner marks sit outside the border and must not be, so
+   they stay out of it. */
+.wc-clip {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.wc-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background-image: radial-gradient(90% 120% at 100% 0%, rgb(0 107 184 / 0.1), transparent 62%);
+  transition: opacity 600ms ease;
+}
+
+.wc-plate:hover .wc-wash {
+  opacity: 1;
+}
+
+/* Oversized, ghosted, and clipped by the plate — it reads as printed on the
+   sheet rather than sitting on top of it. */
+.wc-ghost {
+  position: absolute;
+  top: -0.34em;
+  right: 0.04em;
+  font-family: var(--font-heading);
+  font-size: clamp(5rem, 9vw, 7.5rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: rgb(18 18 18 / 0.05);
+  pointer-events: none;
+  transition: color 600ms ease;
+}
+
+.wc-plate:hover .wc-ghost {
+  color: rgb(0 107 184 / 0.11);
+}
+
+.wc-corner {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  color: rgb(18 18 18 / 0.22);
+  transition: color 550ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wc-plate:hover .wc-corner {
+  color: var(--color-primary);
+}
+
+/* ============================================================================
+   WHO WE WORK WITH — the index
+   Set large rather than small: the client list is a statement of range, not a
+   footnote. Hovering one entry dims the rest, so the list focuses on what the
+   reader is pointing at. Pointer-gated, because on touch there is no hover to
+   resolve and every row would sit dimmed.
+   ========================================================================== */
+.ww-index {
+  border-top: 1px solid rgb(18 18 18 / 0.1);
+}
+
+.ww-entry {
+  border-bottom: 1px solid rgb(18 18 18 / 0.1);
+  transition:
+    opacity 450ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ww-index:hover .ww-entry {
+    opacity: 0.38;
+  }
+  .ww-index:hover .ww-entry:hover {
+    opacity: 1;
+    color: var(--color-primary);
+  }
+}
+
+/* The rule under the hovered entry redraws in the accent, left to right. */
+.ww-entry::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 1px;
+  background-image: linear-gradient(90deg, var(--color-primary), var(--color-cta));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ww-entry:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* The arrow rests off the row and slides in with the hover. */
+.ww-arrow {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 450ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ww-entry:hover .ww-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* A key phrase underlined in the accent — the same device the About story
+   uses, generalised so any section can reach for it. The rule can wrap across
+   lines, which a border-bottom cannot. */
+.sky-mark {
+  background-image: linear-gradient(var(--color-primary), var(--color-primary));
+  background-repeat: no-repeat;
+  background-position: 0 96%;
+  background-size: 100% 2px;
+  padding-bottom: 0.04em;
+}

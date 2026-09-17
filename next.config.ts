@@ -35,6 +35,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Serve AVIF where the browser supports it (noticeably smaller than WebP
+  // for the service and About artwork), WebP otherwise.
+  images: { formats: ["image/avif", "image/webp"] },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

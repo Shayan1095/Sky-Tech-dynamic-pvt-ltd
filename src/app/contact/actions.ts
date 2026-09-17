@@ -3,6 +3,7 @@
 import {
   STEP_ONE,
   STEP_TWO,
+  readEnquiryType,
   readValues,
   validate,
   type ContactResult,
@@ -32,7 +33,13 @@ export async function submitContact(
     return { status: "invalid", errors };
   }
 
-  // TODO(contact-delivery): send `values` to the SKY Tech inbox via the
+  // Where the enquiry came from: a package request or a consultation
+  // booking, or "" for an ordinary enquiry. Never trusted as sent — an
+  // unrecognised value is discarded rather than passed on.
+  const enquiry = readEnquiryType(formData);
+  void enquiry;
+
+  // TODO(contact-delivery): send `values`, `enquiry` and `chosenPackage` to the inbox via the
   // chosen email provider (API key from a server-only env var), add rate
   // limiting, then return { status: "success" }.
   return { status: "unavailable" };

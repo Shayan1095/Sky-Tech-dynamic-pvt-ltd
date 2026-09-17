@@ -293,8 +293,9 @@ export default function ServicesSection() {
           start: "center center",
           end: `+=${PIN_LENGTH}`,
           pin: true,
-          anticipatePin: 1,
           scrub: 0.6,
+          // Refreshes after the Approach pin above it, before anything below.
+          refreshPriority: 1,
           animation: stack,
           onUpdate: trackCurrent(stack),
         });
@@ -351,8 +352,9 @@ export default function ServicesSection() {
           start: () => `center center+=${offset()}`,
           end: `+=${PIN_LENGTH_COMPACT}`,
           pin: true,
-          anticipatePin: 1,
           scrub: 0.6,
+          // Refreshes after the Approach pin above it, before anything below.
+          refreshPriority: 1,
           animation: stack,
           invalidateOnRefresh: true,
           onUpdate: trackCurrent(stack),

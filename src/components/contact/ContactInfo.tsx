@@ -177,7 +177,7 @@ export default function ContactInfo() {
               {/* Primary: the premium CTA, flooding blue on hover or focus */}
               <a
                 href="#contact-form"
-                className="group relative isolate inline-flex min-h-[60px] items-center justify-between gap-5 overflow-hidden rounded-full bg-bg py-2 pl-7 pr-2 text-sm font-semibold uppercase tracking-[0.1em] text-text shadow-[0_14px_36px_-16px_rgb(0_0_0/0.6)] ring-1 ring-transparent transition-[box-shadow] duration-500 hover:shadow-[0_22px_48px_-18px_rgb(0_0_0/0.7)] hover:ring-bg/45 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-[0.98]"
+                className="group relative isolate inline-flex min-h-[60px] items-center justify-between gap-5 overflow-hidden rounded-full bg-bg py-2 pl-7 pr-2 text-sm font-semibold uppercase tracking-[0.1em] text-text shadow-[0_14px_36px_-16px_rgb(0_0_0/0.6)] ring-1 ring-transparent transition-[box-shadow,scale] duration-500 hover:shadow-[0_22px_48px_-18px_rgb(0_0_0/0.7)] hover:ring-bg/45 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-[0.98]"
               >
                 <span className="relative z-10 block overflow-hidden">
                   <span className="block transition-transform delay-[70ms] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-full group-focus-visible:-translate-y-full">

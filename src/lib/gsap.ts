@@ -2,13 +2,13 @@
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { CustomEase } from "gsap/CustomEase";
-import { Flip } from "gsap/Flip";
 
+// Only the plugins the site uses are loaded: every extra plugin is shipped
+// to every visitor on every page.
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, CustomEase, Flip);
+  gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, CustomEase);
 
   // Signature motion curve for the whole site — a decisive expo-style
   // out-ease. Everything uses this instead of stock power2/back so the
@@ -20,4 +20,4 @@ if (typeof window !== "undefined") {
   gsap.defaults({ ease: "sky", duration: 0.9 });
 }
 
-export { gsap, ScrollTrigger, SplitText, DrawSVGPlugin, CustomEase, Flip };
+export { gsap, ScrollTrigger, DrawSVGPlugin, CustomEase };

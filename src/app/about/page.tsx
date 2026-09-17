@@ -18,6 +18,8 @@ export default function AboutPage() {
     <>
       <AboutHero />
 
+      {/* One boundary per section: React hydrates them one at a time instead
+          of in one long task. Nothing suspends, so the HTML is unchanged. */}
       <AboutStory />
 
       <AboutMissionApproach />

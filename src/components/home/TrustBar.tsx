@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 
 const CLOSED = "inset(0 100% 0 0)";
@@ -70,89 +70,69 @@ const LINKS = POINTS.flatMap((p, i) =>
 
 const YEARS_X = [14, 62, 110, 158, 206];
 
-function SitesLayer({ lit }: { lit: boolean }) {
+/* The schematics are several hundred static SVG shapes (300 of them in the
+   network alone). They never change after render, so they are emitted as
+   markup rather than React elements: the drawing is identical, but React
+   doesn't have to walk every shape while the page starts up. Only the
+   .tb-reveal clip shape is animated, and GSAP finds it in the DOM as before. */
+function layerMarkup(kind: VisualKind, lit: boolean) {
+  const stroke = lit ? CYAN : BASE;
+
+  if (kind === "sites") {
+    return TILES.map(
+      (t) =>
+        `<g><rect x="${t.x + 1}" y="${t.y + 1}" width="18" height="14" rx="2.5" fill="${lit ? "rgb(0 194 255 / 0.18)" : "none"}" stroke="${stroke}" stroke-width="1"></rect>` +
+        `<line x1="${t.x + 1}" y1="${t.y + 5}" x2="${t.x + 19}" y2="${t.y + 5}" stroke="${stroke}" stroke-width="1"></line></g>`
+    ).join("");
+  }
+
+  if (kind === "network") {
+    return (
+      `<path d="${LINKS}" stroke="${lit ? "rgb(0 194 255 / 0.5)" : "rgb(255 255 255 / 0.1)"}" stroke-width="0.8"></path>` +
+      POINTS.map(
+        (p) => `<circle cx="${p.x}" cy="${p.y}" r="${lit ? 1.9 : 1.5}" fill="${stroke}"></circle>`
+      ).join("")
+    );
+  }
+
   return (
-    <>
-      {TILES.map((t, i) => (
-        <g key={i}>
-          <rect
-            x={t.x + 1}
-            y={t.y + 1}
-            width="18"
-            height="14"
-            rx="2.5"
-            fill={lit ? "rgb(0 194 255 / 0.18)" : "none"}
-            stroke={lit ? CYAN : BASE}
-            strokeWidth="1"
-          />
-          <line
-            x1={t.x + 1}
-            y1={t.y + 5}
-            x2={t.x + 19}
-            y2={t.y + 5}
-            stroke={lit ? CYAN : BASE}
-            strokeWidth="1"
-          />
-        </g>
-      ))}
-    </>
+    `<line x1="14" y1="45" x2="206" y2="45" stroke="${stroke}" stroke-width="${lit ? 2 : 1.5}" stroke-linecap="round"></line>` +
+    YEARS_X.map(
+      (x) =>
+        `<g><line x1="${x}" y1="26" x2="${x}" y2="34" stroke="${stroke}" stroke-linecap="round"></line>` +
+        `<circle cx="${x}" cy="45" r="${lit ? 6 : 5.5}" fill="#0b1f35" stroke="${stroke}" stroke-width="1.5"></circle>` +
+        (lit ? `<circle cx="${x}" cy="45" r="2.5" fill="${CYAN}"></circle>` : "") +
+        `</g>`
+    ).join("")
   );
 }
 
-function NetworkLayer({ lit }: { lit: boolean }) {
-  return (
-    <>
-      <path d={LINKS} stroke={lit ? "rgb(0 194 255 / 0.5)" : "rgb(255 255 255 / 0.1)"} strokeWidth="0.8" />
-      {POINTS.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={lit ? 1.9 : 1.5} fill={lit ? CYAN : BASE} />
-      ))}
-    </>
-  );
-}
+function visualMarkup(kind: VisualKind, row: number) {
+  // Each stat appears once on the page, so its row makes the id unique.
+  const clipId = `tb-clip-${row}`;
+  const reveal =
+    kind === "network"
+      ? // Businesses light up outward from the centre.
+        `<circle class="tb-reveal" data-row="${row}" data-kind="radius" cx="${VB.w / 2}" cy="${VB.h / 2}" r="125"></circle>`
+      : // Sites and years fill left to right.
+        `<rect class="tb-reveal" data-row="${row}" data-kind="width" x="-4" y="-4" width="${VB.w + 8}" height="${VB.h + 8}"></rect>`;
 
-function YearsLayer({ lit }: { lit: boolean }) {
   return (
-    <>
-      <line x1="14" y1="45" x2="206" y2="45" stroke={lit ? CYAN : BASE} strokeWidth={lit ? 2 : 1.5} strokeLinecap="round" />
-      {YEARS_X.map((x) => (
-        <g key={x}>
-          <line x1={x} y1="26" x2={x} y2="34" stroke={lit ? CYAN : BASE} strokeLinecap="round" />
-          <circle cx={x} cy="45" r={lit ? 6 : 5.5} fill="#0b1f35" stroke={lit ? CYAN : BASE} strokeWidth="1.5" />
-          {lit && <circle cx={x} cy="45" r="2.5" fill={CYAN} />}
-        </g>
-      ))}
-    </>
+    `<defs><clipPath id="${clipId}">${reveal}</clipPath></defs>` +
+    layerMarkup(kind, false) +
+    `<g clip-path="url(#${clipId})">${layerMarkup(kind, true)}</g>`
   );
 }
 
 function StatVisual({ kind, row }: { kind: VisualKind; row: number }) {
-  const clipId = `tb-clip-${useId().replace(/:/g, "")}`;
-  const Layer =
-    kind === "sites" ? SitesLayer : kind === "network" ? NetworkLayer : YearsLayer;
-
   return (
     <svg
       viewBox={`0 0 ${VB.w} ${VB.h}`}
       className="h-auto w-[180px] overflow-visible sm:w-[220px]"
       fill="none"
       aria-hidden="true"
-    >
-      <defs>
-        <clipPath id={clipId}>
-          {kind === "network" ? (
-            // Businesses light up outward from the centre.
-            <circle className="tb-reveal" data-row={row} data-kind="radius" cx={VB.w / 2} cy={VB.h / 2} r="125" />
-          ) : (
-            // Sites and years fill left to right.
-            <rect className="tb-reveal" data-row={row} data-kind="width" x="-4" y="-4" width={VB.w + 8} height={VB.h + 8} />
-          )}
-        </clipPath>
-      </defs>
-      <Layer lit={false} />
-      <g clipPath={`url(#${clipId})`}>
-        <Layer lit />
-      </g>
-    </svg>
+      dangerouslySetInnerHTML={{ __html: visualMarkup(kind, row) }}
+    />
   );
 }
 
