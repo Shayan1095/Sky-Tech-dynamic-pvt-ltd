@@ -41,6 +41,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  // The Services content links the video service as /services/video-editing,
+  // but its own page (and content file) is /services/video-production.
+  async redirects() {
+    return [
+      { source: "/services/video-editing", destination: "/services/video-production", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -15,6 +15,8 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { submitContact } from "@/app/contact/actions";
 import ServiceSelect from "@/components/contact/ServiceSelect";
 import { combinationLabel, findCombination } from "@/lib/packages";
+import { ADDON_SEPARATOR, readAddOns } from "@/lib/service-pages/addons";
+import { estimate, money } from "@/lib/service-pages/quote";
 import {
   CUSTOM_BUDGET,
   ENQUIRY_LABELS,
@@ -60,6 +62,21 @@ function useChosenPackage() {
     () => ""
   );
   return slug ? findCombination(slug) : undefined;
+}
+
+/* A quote built on a service page arrives as ?service=…&budget=…&addons=A|B.
+   Each part is checked before anything is shown: the service must exist, the
+   package must be one of that service's, and every add-on must be on that
+   service's list — so a hand-edited link can't put words in the enquiry. */
+function useRequestedQuote() {
+  const query = useSyncExternalStore(noSubscribe, () => window.location.search, () => "");
+  const params = new URLSearchParams(query);
+  const service = params.get("service") ?? "";
+  if (!service || !isService(service)) return null;
+  const tier = packagesFor(service).find((p) => p.name === params.get("budget"));
+  const addOns = readAddOns(service, params.get("addons"));
+  if (!addOns.length) return null;
+  return { service, tier, addOns, estimate: estimate(tier?.price, addOns) };
 }
 
 const ERROR = "text-[#b42318]";
@@ -162,6 +179,7 @@ export default function ContactForm() {
      travels with the submission so the inbox can tell the two apart. */
   const enquiryType = useEnquiryType();
   const chosenPackage = useChosenPackage();
+  const requestedQuote = useRequestedQuote();
 
   /* Section entrance, once. */
   useIsomorphicLayoutEffect(() => {
@@ -238,8 +256,16 @@ export default function ContactForm() {
        service pages can send visitors straight to a pre-filled form. Read
        here, as step 2 opens, so the server and first client render match. */
     if (!service) {
-      const requested = new URLSearchParams(window.location.search).get("service");
-      if (requested && isService(requested)) setService(requested);
+      const query = new URLSearchParams(window.location.search);
+      const requested = query.get("service");
+      if (requested && isService(requested)) {
+        setService(requested);
+        /* A service page's package buttons add &budget=<package name>, so
+           the visitor lands with their package already chosen. Only a
+           package that belongs to that service is accepted. */
+        const tier = query.get("budget");
+        if (tier && packagesFor(requested).some((p) => p.name === tier)) setBudget(tier);
+      }
     }
     setStep(2);
     requestAnimationFrame(() => stepRefs.current[1]?.querySelector<HTMLElement>("h3")?.focus());
@@ -361,6 +387,53 @@ export default function ContactForm() {
                 <form ref={formRef} onSubmit={onSubmit} noValidate className="mt-8">
                   {/* The context the visitor arrived with, carried into the
                       submission. Rendered only for a recognised type. */}
+                  {/* A quote built on a service page: the package and the
+                      add-ons, with the same estimate the visitor saw. The
+                      add-ons travel with the enquiry only while the service
+                      they belong to is still the one selected. */}
+                  {requestedQuote && (
+                    <>
+                      {service === requestedQuote.service && (
+                        <input
+                          type="hidden"
+                          name="addons"
+                          value={requestedQuote.addOns.map((a) => a.name).join(ADDON_SEPARATOR)}
+                        />
+                      )}
+                      <div className="mt-8 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5">
+                        <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary">
+                          Your {requestedQuote.service} Quote
+                        </p>
+                        <ul className="mt-3 space-y-1.5 text-[14px]">
+                          {requestedQuote.tier && (
+                            <li className="flex items-baseline justify-between gap-4">
+                              <span className="font-display font-medium tracking-[-0.01em] text-text">{requestedQuote.tier.name}</span>
+                              <span className="shrink-0 font-mono text-[13px] text-text/70">{requestedQuote.tier.price}</span>
+                            </li>
+                          )}
+                          {requestedQuote.addOns.map((a) => (
+                            <li key={a.name} className="flex items-baseline justify-between gap-4">
+                              <span className="text-text/75">+ {a.name}</span>
+                              <span className="shrink-0 font-mono text-[13px] text-text/60">{a.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-3 border-t border-primary/15 pt-3 text-[13px] leading-relaxed text-text/70">
+                          Estimated from{" "}
+                          <span className="font-mono text-text">
+                            {money(requestedQuote.estimate.from)}
+                            {requestedQuote.estimate.open ? "+" : ""}
+                          </span>
+                          {requestedQuote.estimate.monthly > 0 && (
+                            <> + <span className="font-mono text-text">{money(requestedQuote.estimate.monthly)}/month</span></>
+                          )}
+                          {requestedQuote.estimate.custom.length > 0 && <>, with custom items quoted after review</>}
+                          . We&apos;ll confirm the final quote once we&apos;ve reviewed your requirements.
+                        </p>
+                      </div>
+                    </>
+                  )}
+
                   {enquiryType && (
                     <>
                       <input type="hidden" name="enquiry" value={enquiryType} />

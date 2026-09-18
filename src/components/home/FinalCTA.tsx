@@ -156,8 +156,8 @@ export default function FinalCTA() {
               <span aria-hidden="true" className="relative h-10 w-10 shrink-0">
                 <span className="absolute inset-0 rounded-full bg-primary transition-transform duration-[650ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[17] group-focus-visible:scale-[17]" />
                 <span className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-full text-bg">
-                  <ArrowIcon className="transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-[180%] group-focus-visible:translate-x-[180%]" />
-                  <ArrowIcon className="absolute -translate-x-[180%] transition-transform delay-[90ms] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-focus-visible:translate-x-0" />
+                  <ArrowIcon className="transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-[260%] group-focus-visible:translate-x-[260%]" />
+                  <ArrowIcon className="absolute -translate-x-[260%] transition-transform delay-[90ms] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-focus-visible:translate-x-0" />
                 </span>
               </span>
             </Link>

@@ -1271,3 +1271,645 @@ html[data-sky-seen] .sky-preloader {
   background-size: 100% 2px;
   padding-bottom: 0.04em;
 }
+
+/* ============================================================================
+   SERVICE PAGES — the template all thirteen service pages share
+   (src/components/service). Everything here extends the Services page's
+   vocabulary: the same drafting frame, the same navy panels, the same
+   accordion. Only the pieces new to these pages are defined below.
+   ========================================================================== */
+
+/* Hero package card: parallaxed while the hero scrolls, so it gets its own
+   layer for the same reason the Services index card does. */
+.svh-card-depth,
+.svh-card {
+  will-change: transform;
+}
+
+/* Words struck through in the problem statement. The line is drawn, not
+   typed: --strike runs 0 → 1 with the reader's scroll. Its resting value is
+   1, so without JavaScript or under reduced motion the words stay struck. */
+.sv-strike {
+  position: relative;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--color-text) 72%, transparent);
+}
+.sv-strike::after {
+  content: "";
+  position: absolute;
+  left: -0.06em;
+  right: -0.06em;
+  top: 54%;
+  height: max(2px, 0.075em);
+  border-radius: 999px;
+  background: var(--color-cta);
+  transform: scaleX(var(--strike, 1));
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+/* ---- Package chooser ------------------------------------------------------
+   Phones: a scrolling row of tabs above the panel. Desktop: the ruled rows
+   the Services combination chooser uses, with the same accent edge. */
+.svk-options {
+  scrollbar-width: none;
+}
+.svk-options::-webkit-scrollbar {
+  display: none;
+}
+.svk-opt {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  cursor: pointer;
+  border: 1px solid rgb(18 18 18 / 0.14);
+  border-radius: 16px;
+  padding: 0.8rem 1rem;
+  background: var(--color-bg);
+  transition:
+    border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svk-opt:has(input:checked) {
+  border-color: var(--color-primary);
+  background: rgb(0 107 184 / 0.05);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+.svk-opt:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.svk-opt .svk-num {
+  color: rgb(18 18 18 / 0.3);
+  transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svk-opt .svk-price {
+  color: rgb(18 18 18 / 0.55);
+  transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svk-opt:has(input:checked) .svk-num,
+.svk-opt:has(input:checked) .svk-price {
+  color: var(--color-primary);
+}
+
+@media (min-width: 1024px) {
+  .svk-opt {
+    border: 0;
+    border-top: 1px solid rgb(18 18 18 / 0.1);
+    border-radius: 0;
+    padding: 1.35rem 0.5rem 1.35rem 1.25rem;
+    background: transparent;
+  }
+  .svk-opt:last-child {
+    border-bottom: 1px solid rgb(18 18 18 / 0.1);
+  }
+  .svk-opt::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 3px;
+    background-image: linear-gradient(180deg, var(--color-primary), var(--color-cta));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .svk-opt:has(input:checked) {
+    background: rgb(0 107 184 / 0.05);
+    box-shadow: none;
+  }
+  .svk-opt:has(input:checked)::before {
+    transform: scaleX(1);
+  }
+}
+@media (min-width: 1024px) and (hover: hover) {
+  .svk-opt:hover {
+    background: rgb(0 107 184 / 0.03);
+  }
+}
+
+/* ---- System board (beyond the packages) ---------------------------------
+   The cells share their borders, so the board reads as one grid. */
+.svc2-board {
+  border-top: 1px solid rgb(255 255 255 / 0.13);
+  border-left: 1px solid rgb(255 255 255 / 0.13);
+}
+.svc2-cell {
+  border-right: 1px solid rgb(255 255 255 / 0.13);
+  border-bottom: 1px solid rgb(255 255 255 / 0.13);
+  background: rgb(255 255 255 / 0.02);
+}
+.svc2-node {
+  box-shadow: 0 0 0 4px rgb(0 194 255 / 0.12);
+}
+
+/* ---- Quote builder -------------------------------------------------------
+   The checkbox is drawn: an outlined square that fills with the brand blue
+   and shows its tick when chosen. The whole row is the hit target. */
+.svx-opt {
+  transition: background-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svx-box {
+  transition:
+    background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svx-box svg {
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    scale 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svx-opt:has(input:checked) {
+  background-color: rgb(0 107 184 / 0.045);
+}
+.svx-opt:has(input:checked) .svx-box {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+}
+.svx-opt:has(input:checked) .svx-box svg {
+  opacity: 1;
+  scale: 1;
+}
+.svx-opt:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .svx-opt:hover {
+    background-color: rgb(0 107 184 / 0.03);
+  }
+  .svx-opt:hover .svx-box {
+    border-color: var(--color-primary);
+  }
+}
+
+
+/* ---- Add-on rows: the dotted leader joining name to price ---------------
+   The name's box grows to fill the row, and the leader fills whatever the
+   name leaves, so it always meets the price. A fixed offset rather than em,
+   because the name and price are set at different sizes. */
+.svx-leader::after {
+  content: "";
+  flex: 1 1 auto;
+  min-width: 1.5rem;
+  border-bottom: 1px dotted rgb(18 18 18 / 0.28);
+  transform: translateY(-4px);
+}
+
+/* ---- Why SKY Tech: promises with proof ----------------------------------
+   Proof shapes inside SVG scale about their own centre. */
+.svy-pop {
+  transform-box: fill-box;
+}
+@media (hover: hover) and (pointer: fine) {
+  .svy-card:hover {
+    translate: 0 -4px;
+    border-color: rgb(0 107 184 / 0.28);
+    box-shadow:
+      0 1px 2px rgb(18 18 18 / 0.04),
+      0 28px 56px -34px rgb(11 31 53 / 0.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .svy-card {
+    transition: none;
+  }
+}
+
+/* ---- Process log: three states per step, set from scroll ---------------- */
+.svs-step .svs-node,
+.svs-step .svs-title,
+.svs-step .svs-body {
+  transition:
+    color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svs-step[data-state="next"] .svs-node {
+  border-color: rgb(18 18 18 / 0.15);
+  background: var(--color-bg);
+  color: rgb(18 18 18 / 0.4);
+}
+.svs-step[data-state="next"] .svs-title {
+  color: rgb(18 18 18 / 0.4);
+}
+.svs-step[data-state="next"] .svs-body {
+  color: rgb(18 18 18 / 0.4);
+}
+.svs-step[data-state="active"] .svs-node {
+  border-color: var(--color-cta);
+  background: var(--color-cta);
+  color: var(--color-navy);
+  box-shadow: 0 0 0 6px rgb(0 194 255 / 0.16);
+}
+.svs-step[data-state="done"] .svs-node {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+.svs-step[data-state="active"] .svs-title,
+.svs-step[data-state="done"] .svs-title {
+  color: var(--color-text);
+}
+.svs-step[data-state="active"] .svs-body,
+.svs-step[data-state="done"] .svs-body {
+  color: rgb(18 18 18 / 0.7);
+}
+
+/* ---- Mobile quote bar ---------------------------------------------------- */
+.svq-bar {
+  transition: translate 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .svq-bar {
+    transition: none;
+  }
+}
+
+/* ---- Budget finder -------------------------------------------------------
+   Ranges the budget falls outside step back; the ones it fits stay lit. The
+   dimming starts only once the visitor has moved the slider, so the chart
+   first reads as a chart. */
+.svi-row {
+  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-finder="on"] .svi-row[data-fits="false"] {
+  opacity: 0.32;
+}
+/* The marker follows the thumb directly, with no easing on its position:
+   under a dragging finger, any lag reads as the control being slow. Only
+   its first appearance fades. */
+.svi-marker {
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-finder="on"] .svi-marker {
+  opacity: 1;
+}
+.svi-range {
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .svi-row,
+  .svi-marker {
+    transition: none;
+  }
+}
+
+/* ---- Section bar (desktop) ----------------------------------------------- */
+.svn-bar {
+  transition:
+    translate 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svn-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-cta);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svn-link[aria-current="location"] {
+  color: var(--color-text);
+}
+.svn-link[aria-current="location"]::after {
+  transform: scaleX(1);
+}
+/* With the bar under the header, jumped-to sections clear both. */
+@media (min-width: 1024px) {
+  body:has(.svn-bar) .sky-anchor {
+    scroll-margin-top: 9rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .svn-bar,
+  .svn-link::after {
+    transition: none;
+  }
+}
+
+/* ---- Related services: wired to the hub ---------------------------------
+   The spine is drawn in halves by each row — up to the gap above, down to
+   the gap below — so it joins up whatever height each row turns out to be.
+   --sx is where the spine runs, relative to each row's left edge. */
+.svr-row {
+  --sx: -1.25rem;
+  --gap: 1rem;
+}
+@media (min-width: 1024px) {
+  .svr-row {
+    --sx: -1.5rem;
+  }
+}
+.svr-seg,
+.svr-tick {
+  position: absolute;
+  background: rgb(0 107 184 / 0.35);
+  pointer-events: none;
+}
+.svr-seg {
+  left: var(--sx);
+  width: 1px;
+}
+.svr-seg-top {
+  top: calc(var(--gap) / -2);
+  height: calc(50% + var(--gap) / 2);
+  transform-origin: 50% 100%;
+}
+.svr-seg-bottom {
+  top: 50%;
+  height: calc(50% + var(--gap) / 2);
+  transform-origin: 50% 0%;
+}
+.svr-tick {
+  left: var(--sx);
+  top: 50%;
+  width: calc(var(--sx) * -1);
+  height: 1px;
+  transition: background-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svr-node {
+  position: absolute;
+  z-index: 1;
+  left: -5px;
+  top: calc(50% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1.5px solid rgb(0 107 184 / 0.55);
+  background: var(--color-bg);
+  transition:
+    background-color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svr-card {
+  transition:
+    border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* In the quote: the row's wire lights up. */
+.svr-row[data-added] .svr-tick {
+  background: var(--color-cta);
+}
+.svr-row[data-added] .svr-node {
+  border-color: var(--color-cta);
+  background: var(--color-cta);
+  box-shadow: 0 0 0 5px rgb(0 194 255 / 0.18);
+}
+.svr-row[data-added] .svr-card {
+  border-color: rgb(0 107 184 / 0.3);
+}
+@media (hover: hover) and (pointer: fine) {
+  .svr-row:hover .svr-tick {
+    background: var(--color-primary);
+  }
+  .svr-row:hover .svr-node {
+    border-color: var(--color-primary);
+  }
+  .svr-row:hover .svr-card {
+    border-color: rgb(0 107 184 / 0.25);
+    box-shadow: 0 22px 44px -30px rgb(11 31 53 / 0.4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .svr-tick,
+  .svr-node,
+  .svr-card {
+    transition: none;
+  }
+}
+
+/* ---- Technology band: full-bleed logo rows on navy ------------------------
+   Each track holds its sequence twice and slides by exactly half its width,
+   so the loop has no seam. Transform only; linear, because it is constant
+   motion. Alternate rows run in opposite directions. */
+.svt-row {
+  position: relative;
+}
+
+/* Each row's label sits centred above it, between two short rules. */
+.svt-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  font-family: var(--font-numeric);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.62);
+}
+.svt-label::before,
+.svt-label::after {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: rgb(0 194 255 / 0.55);
+}
+.svt-label-sep {
+  width: 4px;
+  height: 4px;
+  background: var(--color-cta);
+  transform: rotate(45deg);
+}
+
+/* The rail: a drawing line running through the tiles' centres, full width. */
+.svt-rail {
+  position: relative;
+  margin-top: 1.1rem;
+}
+.svt-rail::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgb(255 255 255 / 0.14) 12%, rgb(255 255 255 / 0.14) 88%, transparent);
+}
+
+.svt-viewport {
+  position: relative;
+  overflow: hidden;
+  padding-block: 0.9rem;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+.svt-track {
+  display: flex;
+  width: max-content;
+  animation: svt-left var(--dur, 60s) linear infinite;
+  will-change: transform;
+}
+.svt-track[data-dir="right"] {
+  animation-name: svt-right;
+}
+.svt-half {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding-right: 0.9rem;
+}
+@keyframes svt-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes svt-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+/* Stops: tapped to pause, off screen, or a mouse resting on a row. */
+.svt[data-paused="true"] .svt-track,
+.svt[data-offscreen="true"] .svt-track {
+  animation-play-state: paused;
+}
+@media (hover: hover) and (pointer: fine) {
+  .svt-row:hover .svt-track {
+    animation-play-state: paused;
+  }
+}
+
+/* Tiles: light plates, so every brand shows in its own colour. */
+.svt-tile {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.8rem;
+  height: 3.6rem;
+  padding: 0 1.35rem 0 1.15rem;
+  border-radius: 16px;
+  background: linear-gradient(to bottom, #ffffff, #f4f7fb);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(0 0 0 / 0.25),
+    0 18px 34px -22px rgb(0 0 0 / 0.8);
+  white-space: nowrap;
+  transition:
+    translate 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.svt-logo {
+  position: relative;
+  display: block;
+  width: var(--size, 24px);
+  height: var(--size, 24px);
+  margin-block: calc((24px - var(--size, 24px)) / 2);
+  flex: 0 0 auto;
+}
+.svt-logo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--brand, var(--color-primary));
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+}
+.svt-logo[data-backed="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--backing);
+}
+.svt-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-navy);
+}
+/* Where a shared row changes group, a marker in the track. */
+.svt-group {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.4rem 0 0.5rem;
+  font-family: var(--font-numeric);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-cta);
+  white-space: nowrap;
+}
+.svt-group::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: var(--color-cta);
+  transform: rotate(45deg);
+}
+@media (hover: hover) and (pointer: fine) {
+  .svt-tile:hover {
+    translate: 0 -3px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 0 0 1px color-mix(in srgb, var(--brand, var(--color-cta)) 55%, transparent),
+      0 22px 40px -20px color-mix(in srgb, var(--brand, var(--color-cta)) 70%, transparent);
+  }
+}
+
+/* The categories with no logos: one still, centred line. */
+.svt-still {
+  margin-top: 3.25rem;
+}
+.svt-pill {
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.82);
+  background: rgb(255 255 255 / 0.04);
+}
+
+@media (max-width: 639px) {
+  .svt-tile {
+    height: 3.2rem;
+    padding: 0 1.1rem 0 0.95rem;
+  }
+  .svt-name {
+    font-size: 13.5px;
+  }
+  .svt-viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+  }
+}
+
+/* Reduced motion: still rows, each technology shown once, wrapping, centred. */
+@media (prefers-reduced-motion: reduce) {
+  .svt-viewport {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .svt-rail::before {
+    display: none;
+  }
+  .svt-track {
+    animation: none;
+    width: auto;
+    justify-content: center;
+    padding-inline: 1rem;
+  }
+  .svt-half {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-right: 0;
+  }
+  .svt-half[data-copy="1"],
+  .svt-half [data-rep] {
+    display: none;
+  }
+  .svt-tile {
+    transition: none;
+  }
+}

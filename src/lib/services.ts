@@ -22,7 +22,7 @@ export const SERVICE_META: Record<string, { category: string; description: strin
     description:
       "Strategy, content creation, and community management that builds real engagement across every platform.",
   },
-  "Video Production": {
+  "Video Editing & Production": {
     category: "Content & Media",
     description:
       "Professional video production, reels, corporate videos and social-first visual content.",

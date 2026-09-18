@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BUILT_SERVICE_SLUGS, servicePagePath } from "@/lib/service-pages/built";
 
 /* Site-wide identity and SEO helpers. The live address comes from
    NEXT_PUBLIC_SITE_URL (set it in the hosting dashboard once the domain is
@@ -14,8 +15,14 @@ export const DEFAULT_DESCRIPTION =
 export const DEFAULT_KEYWORDS =
   "digital product agency, web development company, digital marketing agency, custom software development, WordPress development company";
 
-/* Public routes, used by the sitemap. */
-export const ROUTES = ["/", "/services", "/about", "/contact"] as const;
+/* Public routes, used by the sitemap. Service pages join as they are built. */
+export const ROUTES: readonly string[] = [
+  "/",
+  "/services",
+  ...BUILT_SERVICE_SLUGS.map((slug) => `/services/${slug}`),
+  "/about",
+  "/contact",
+];
 
 /* Per-page metadata: title, description, a canonical URL, and the matching
    Open Graph / Twitter card fields. The preview image itself comes from
@@ -48,8 +55,13 @@ export function pageMetadata({
   };
 }
 
-/* Until each service has its own page, service links open the Contact form
-   with that service preselected. */
+/* Opens the Contact form with a service preselected. */
 export function contactHref(service: string) {
   return `/contact?service=${encodeURIComponent(service)}#contact-form`;
+}
+
+/* Where a link about a service should go: its own page once that exists,
+   the pre-filled Contact form until then. */
+export function serviceLink(service: string) {
+  return servicePagePath(service) ?? contactHref(service);
 }

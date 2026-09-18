@@ -109,7 +109,7 @@ export const SERVICE_GROUPS: Array<{
         ],
       },
       {
-        name: "Video Production",
+        name: "Video Editing & Production",
         packages: [
           { name: "Short-Form Content", price: "$299/video" },
           { name: "Product Demo", price: "$500/video" },

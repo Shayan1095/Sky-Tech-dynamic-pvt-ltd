@@ -1,3 +1,5 @@
+import { servicePagePath } from "@/lib/service-pages/built";
+
 /* The three service pillars and their thirteen services, worded exactly as
    in src/content/services/main.md. Shared by the hero's index card, the What
    We Do section and the pillar sections, so none of them can fall out of
@@ -211,7 +213,7 @@ export const PILLARS: readonly Pillar[] = [
     index: "03",
     name: "Creative & Media Services",
     anchor: "#creative--media-services",
-    short: "Graphic Design · Video Editing · Media & Events",
+    short: "Graphic Design · Video Editing & Production · Media & Events",
     introHeading: "Creative Work That Makes Your Brand Stand Out.",
     introParagraphs: [
       "Your brand needs more than good ideas. It needs clear communication, consistent visuals and content that connects with people.",
@@ -235,8 +237,8 @@ export const PILLARS: readonly Pillar[] = [
         ],
       },
       {
-        name: "Video Editing",
-        slug: "video-editing",
+        name: "Video Editing & Production",
+        slug: "video-production",
         summary:
           "Professional video editing for social media, marketing, corporate and digital content.",
         offers: [
@@ -285,8 +287,8 @@ export const pillarHref = (anchor: string) => {
   return pillar && LIVE_PILLARS.has(pillar.index) ? anchor : "#what-we-do";
 };
 
-/* The thirteen service pages do not exist yet, so every "Explore" link opens
-   the contact form with that service already chosen. When a page is built,
-   return `/services/${slug}` for it here. */
+/* A service's "Explore" link goes to its own page once that page is built
+   (see src/lib/service-pages/built.ts), and to the contact form with the
+   service already chosen until then. */
 export const serviceHref = (service: Service) =>
-  `/contact?service=${encodeURIComponent(service.name)}#contact-form`;
+  servicePagePath(service.name) ?? `/contact?service=${encodeURIComponent(service.name)}#contact-form`;

@@ -169,8 +169,8 @@ export default function ServicesClosing() {
                     arrives from the action rather than from an edge. */}
                 <span className="absolute inset-0 rounded-full bg-navy transition-transform duration-[600ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[14] group-focus-visible:scale-[14]" />
                 <span className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-full text-white">
-                  <Arrow className="transition-transform duration-[420ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-[180%] group-focus-visible:translate-x-[180%]" />
-                  <Arrow className="absolute -translate-x-[180%] transition-transform delay-[60ms] duration-[420ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-focus-visible:translate-x-0" />
+                  <Arrow className="transition-transform duration-[420ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-[260%] group-focus-visible:translate-x-[260%]" />
+                  <Arrow className="absolute -translate-x-[260%] transition-transform delay-[60ms] duration-[420ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-focus-visible:translate-x-0" />
                 </span>
               </span>
             </Link>

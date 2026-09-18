@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useLenis } from "lenis/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { servicePagePath } from "@/lib/service-pages/built";
 
 // Runs before paint on the client so the reveal never flashes its end state.
 const useIsomorphicLayoutEffect =
@@ -29,13 +30,13 @@ const PAGES = [
   { href: "/contact", label: "Contact" },
 ];
 
-// Individual service pages aren't built yet, so these point at /services/.
+// Each links to its own page once built, and to /services until then.
 const SERVICES = [
   "Web Development",
   "WordPress Development",
   "Digital Marketing",
   "Social Media Management",
-  "Video Production",
+  "Video Editing & Production",
   "Business Automation",
 ];
 
@@ -308,7 +309,7 @@ export default function Footer() {
             <ul className="mt-5 space-y-3 text-[0.95rem]">
               {SERVICES.map((s) => (
                 <li key={s}>
-                  <SweepLink href="/services">{s}</SweepLink>
+                  <SweepLink href={servicePagePath(s) ?? "/services"}>{s}</SweepLink>
                 </li>
               ))}
             </ul>

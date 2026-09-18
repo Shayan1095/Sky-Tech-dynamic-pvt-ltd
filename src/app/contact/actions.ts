@@ -8,6 +8,7 @@ import {
   validate,
   type ContactResult,
 } from "@/lib/contact";
+import { readAddOns } from "@/lib/service-pages/addons";
 
 /* Contact form submission.
 
@@ -39,7 +40,13 @@ export async function submitContact(
   const enquiry = readEnquiryType(formData);
   void enquiry;
 
-  // TODO(contact-delivery): send `values`, `enquiry` and `chosenPackage` to the inbox via the
+  // Add-ons from a service page's quote builder. Only add-ons that belong to
+  // the selected service survive; anything else in the field is dropped.
+  const addOnsRaw = formData.get("addons");
+  const addOns = readAddOns(values.need, typeof addOnsRaw === "string" ? addOnsRaw : "");
+  void addOns;
+
+  // TODO(contact-delivery): send `values`, `enquiry`, `chosenPackage` and `addOns` to the inbox via the
   // chosen email provider (API key from a server-only env var), add rate
   // limiting, then return { status: "success" }.
   return { status: "unavailable" };

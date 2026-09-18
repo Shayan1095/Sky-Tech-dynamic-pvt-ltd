@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { contactHref } from "@/lib/site";
+import { serviceLink } from "@/lib/site";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
@@ -53,7 +53,7 @@ const SERVICES: Service[] = [
     title: "Web Development",
     description:
       "Custom, responsive websites and web apps built on modern frameworks.",
-    href: contactHref("Web Development"),
+    href: serviceLink("Web Development"),
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
         <rect x="2.5" y="4.5" width="19" height="15" rx="2.5" />
@@ -70,7 +70,7 @@ const SERVICES: Service[] = [
     title: "WordPress Development",
     description:
       "Secure, scalable WordPress & WooCommerce sites with custom themes.",
-    href: contactHref("WordPress Development"),
+    href: serviceLink("WordPress Development"),
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
         <circle cx="12" cy="12" r="8.75" />
@@ -86,7 +86,7 @@ const SERVICES: Service[] = [
     title: "Digital Marketing",
     description:
       "Data-driven SEO, Google Ads, and social advertising that generates leads.",
-    href: contactHref("Digital Marketing"),
+    href: serviceLink("Digital Marketing"),
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
         <path d="M3 19.5h18" />
@@ -103,7 +103,7 @@ const SERVICES: Service[] = [
     title: "Social Media Management",
     description:
       "Strategy, content, and community management that builds real engagement.",
-    href: contactHref("Social Media Management"),
+    href: serviceLink("Social Media Management"),
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
         <path d="M20.5 11.4c0 3.8-3.8 6.9-8.5 6.9a10 10 0 0 1-2.4-.3L4.8 20l1.1-3.2a6.6 6.6 0 0 1-2.4-5c0-3.8 3.8-6.9 8.5-6.9s8.5 3.1 8.5 6.9z" />
@@ -116,10 +116,10 @@ const SERVICES: Service[] = [
     art: { w: 147.12, l: -42.53, v: -51.37 },
     card: "/services/cards/video-production.png",
     image: { src: "/services/video-production.png", width: 1774, height: 887 },
-    title: "Video Production",
+    title: "Video Editing & Production",
     description:
       "Professional video production, reels, and social-first visual content.",
-    href: contactHref("Video Production"),
+    href: serviceLink("Video Editing & Production"),
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
         <rect x="3" y="8.8" width="18" height="11.4" rx="2.2" />
@@ -134,7 +134,7 @@ const SERVICES: Service[] = [
     image: { src: "/services/business-automation.png", width: 1672, height: 941 },
     title: "Business Automation",
     description: "Custom workflows and integrations that eliminate manual work.",
-    href: contactHref("Business Automation"),
+    href: serviceLink("Business Automation"),
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
         <rect x="2.5" y="3.2" width="7.6" height="5.8" rx="1.8" />
