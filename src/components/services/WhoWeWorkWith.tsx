@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { Words } from "@/components/service/parts";
 
 // Runs before paint on the client so the reveal never flashes its end state.
 const useIsomorphicLayoutEffect =
@@ -89,25 +90,27 @@ export default function WhoWeWorkWith() {
 
           {/* Set large, because the range of clients is a claim in its own
               right. Two columns on desktop so ten entries stay on one screen
-              instead of becoming a scroll of their own. */}
-          <ul className="ww-index mt-14 lg:mt-16 lg:grid lg:grid-cols-2 lg:gap-x-14">
+              instead of becoming a scroll of their own. Phones get two
+              columns as well — a compact grid of cells, number above name. */}
+          <ul className="ww-index mt-14 max-sm:mt-10 max-sm:grid max-sm:grid-cols-2 lg:mt-16 lg:grid lg:grid-cols-2 lg:gap-x-14">
             {CLIENTS.map((client, i) => (
               <li
                 key={client}
-                className="ww-entry relative flex items-baseline gap-5 py-5 sm:gap-6 sm:py-6"
+                className="ww-entry relative flex items-baseline gap-5 py-5 max-sm:flex-col max-sm:gap-2 max-sm:py-4 max-sm:odd:pr-4 max-sm:even:border-l max-sm:even:border-l-text/10 max-sm:even:pl-4 sm:gap-6 sm:py-6"
               >
                 <span aria-hidden="true" className="shrink-0 font-mono text-[11px] tracking-[0.18em] text-text/30">
                   {String(i + 1).padStart(2, "0")}
                 </span>
 
-                <span className="min-w-0 flex-1 font-display text-[1.25rem] font-medium leading-snug tracking-[-0.02em] [text-wrap:balance] sm:text-[1.5rem] lg:text-[1.65rem]">
-                  {client}
+                <span className="min-w-0 flex-1 font-display text-[1.25rem] font-medium max-sm:text-[1.02rem] leading-snug tracking-[-0.02em] [text-wrap:balance] sm:text-[1.5rem] lg:text-[1.65rem]">
+                  {/* Phones only: the desktop wrap is left exactly as it was. */}
+                  <Words text={client} nowrap="max-sm:whitespace-nowrap" />
                 </span>
 
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 16 16"
-                  className="ww-arrow h-[14px] w-[14px] shrink-0 self-center text-primary"
+                  className="ww-arrow h-[14px] w-[14px] shrink-0 self-center text-primary max-sm:hidden"
                   fill="none"
                 >
                   <path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

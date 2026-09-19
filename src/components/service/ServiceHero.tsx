@@ -212,8 +212,9 @@ export default function ServiceHero({ page }: { page: ServicePage }) {
             </div>
           </div>
 
-          {/* Package Index */}
-          <div className="svh-card-depth">
+          {/* Package Index. Not on phones: there it would sit a screen above
+              the package tabs, which list the same packages and prices. */}
+          <div className="svh-card-depth max-sm:hidden">
             <nav
               aria-label={`${contactName} packages`}
               className="svh-card relative isolate overflow-hidden rounded-[26px] border border-white/[0.09] bg-navy shadow-[0_2px_4px_rgb(18_18_18/0.06),0_44px_88px_-44px_rgb(11_31_53/0.6)]"

@@ -141,13 +141,13 @@ export const H2 =
    "E-commerce" and "Add-ons" across lines at large sizes. Hyphenated words
    are kept whole with a no-wrap span — the text itself is untouched, so what
    search engines and screen readers get is exactly the content's wording. */
-export function Words({ text }: { text: string }) {
+export function Words({ text, nowrap = "whitespace-nowrap" }: { text: string; nowrap?: string }) {
   const parts = text.split(/(\S*\w-\w\S*)/);
   return (
     <>
       {parts.map((part, i) =>
         /\w-\w/.test(part) ? (
-          <span key={i} className="whitespace-nowrap">
+          <span key={i} className={nowrap}>
             {part}
           </span>
         ) : (

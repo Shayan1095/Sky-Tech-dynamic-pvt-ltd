@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { SwipeMeter, useSwipeIndex } from "@/components/shared/SwipeRow";
 
 // Runs before paint on the client so the reveal never flashes its end state.
 const useIsomorphicLayoutEffect =
@@ -60,6 +61,8 @@ function Corner({ at }: { at: "tl" | "tr" | "bl" | "br" }) {
 
 export default function WhyChooseSky() {
   const sectionRef = useRef<HTMLElement>(null);
+  const rowRef = useRef<HTMLUListElement>(null);
+  const swipe = useSwipeIndex(rowRef, REASONS.length);
 
   useIsomorphicLayoutEffect(() => {
     const root = sectionRef.current;
@@ -114,7 +117,8 @@ export default function WhyChooseSky() {
             Why Choose SKY Tech?
           </h2>
 
-          <ul className="mt-16 grid gap-6 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3 lg:gap-7">
+          {/* Phones: one plate at a time, swiped (see .swipe-row). */}
+          <ul ref={rowRef} className="swipe-row mt-9 grid gap-6 sm:mt-16 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3 lg:gap-7">
             {REASONS.map((reason, i) => (
               <li key={reason.title} className="wc-plate rounded-[22px] p-7 sm:p-8">
                 {/* Printed on the sheet and trimmed by its edge. The
@@ -135,7 +139,7 @@ export default function WhyChooseSky() {
                   <span className="text-text/30"> / 06</span>
                 </p>
 
-                <h3 className="mt-20 font-display text-[1.25rem] font-medium leading-snug tracking-[-0.02em] text-text [text-wrap:balance] sm:text-[1.35rem]">
+                <h3 className="mt-14 font-display sm:mt-20 text-[1.25rem] font-medium leading-snug tracking-[-0.02em] text-text [text-wrap:balance] sm:text-[1.35rem]">
                   {reason.title}
                 </h3>
 
@@ -147,6 +151,8 @@ export default function WhyChooseSky() {
               </li>
             ))}
           </ul>
+
+          <SwipeMeter {...swipe} count={REASONS.length} label="reason" className="mt-3" />
         </div>
       </div>
     </section>

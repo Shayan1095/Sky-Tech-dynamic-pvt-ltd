@@ -53,7 +53,7 @@ export default function ServiceCapabilities({ page }: { page: ServicePage }) {
       {caps.map((cap, i) => (
         <div key={cap.id} id={cap.id} className={`sky-anchor relative ${FRAME} ${i > 0 ? "border-t border-dotted border-white/20" : ""}`}>
           <div
-            className={`grid grid-cols-[minmax(0,1fr)] gap-12 py-20 sm:py-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-16 lg:py-28 ${INSET}`}
+            className={`grid grid-cols-[minmax(0,1fr)] gap-10 py-20 sm:gap-12 sm:py-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-16 lg:py-28 ${INSET}`}
           >
             {/* The offer */}
             <div className="svc2-head lg:sticky lg:top-40 lg:self-start">

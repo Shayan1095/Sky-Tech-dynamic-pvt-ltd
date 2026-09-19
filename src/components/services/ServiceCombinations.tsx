@@ -108,7 +108,7 @@ export default function ServiceCombinations() {
             for connected digital solutions.
           </p>
 
-          <div className="mt-14 grid gap-10 lg:mt-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-12">
+          <div className="mt-12 grid gap-6 sm:mt-14 sm:gap-10 lg:mt-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-12">
             {/* The chooser. Real radio inputs, so arrow keys move through the
                 combinations the way a keyboard user expects. */}
             <fieldset>
@@ -116,9 +116,9 @@ export default function ServiceCombinations() {
                 Popular Service Combinations
               </legend>
 
-              <div className="mt-7" role="none">
+              <div className="mt-4 sm:mt-7" role="none">
                 {COMBINATIONS.map((item, i) => (
-                  <label key={item.slug} className="pkg-row py-5 pl-5 pr-2">
+                  <label key={item.slug} className="pkg-row py-3.5 pl-5 pr-2 sm:py-5">
                     <input
                       type="radio"
                       name="service-combination"
@@ -145,7 +145,10 @@ export default function ServiceCombinations() {
                             </span>
                           ))}
                         </span>
-                        <span className="mt-2 block text-[14px] leading-relaxed text-text/60">
+                        {/* On phones the chosen combination's outcome is
+                            shown once, in the package panel below, rather
+                            than under every row. */}
+                        <span className="mt-2 block text-[14px] leading-relaxed text-text/60 max-sm:hidden">
                           {item.outcome}
                         </span>
                       </span>
@@ -174,14 +177,16 @@ export default function ServiceCombinations() {
                 {/* Every combination renders the same number of slots, the
                     unused ones held empty. A min-height in rem would drift
                     with font metrics and zoom; matching slot counts cannot,
-                    so choosing a combination never moves the page. */}
+                    so choosing a combination never moves the page. On phones
+                    the panel sits below the list, so nothing being read can
+                    move and the empty slot is dropped. */}
                 <ul ref={chipsRef} className="mt-8 grid gap-3">
                   {Array.from({ length: MAX_PARTS }, (_, p) => {
                     const part = combination.parts[p];
                     return (
                       <li
                         key={p}
-                        className={`relative ${part ? "" : "invisible"}`}
+                        className={`relative ${part ? "" : "invisible max-sm:hidden"}`}
                         aria-hidden={part ? undefined : true}
                       >
                         {p > 0 && (

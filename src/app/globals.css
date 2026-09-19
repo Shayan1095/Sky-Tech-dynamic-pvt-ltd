@@ -871,6 +871,186 @@ html[data-sky-seen] .sky-preloader {
   mask-image: radial-gradient(130% 80% at 50% 0%, #000 0%, transparent 74%);
 }
 
+/* --- Pillar deck (below desktop) ---------------------------------------------
+   On phones and tablets the list under each pillar becomes a deck. The panel
+   scrolls in first; its footer, the dock, then pins under the navbar with the
+   pillar's name and the reader's place (02 / 05). Each card sticks one step
+   lower than the one before, so as the next slides over it, the covered card
+   keeps its number and name showing — a tabbed stack of the whole pillar.
+   The covering itself is scroll position, not animation; only the settle of
+   the covered card (a few percent smaller, a touch darker) is set from JS.
+
+   An open card is released from the stack and scrolls like any list, so its
+   capabilities are never hidden under the next card. Under reduced motion
+   nothing sticks except the dock: the plain list, with the place marker.
+
+   Desktop is untouched: every rule here sits under max-width: 1023px, and the
+   veil and dock are hidden there. */
+.pillar-veil {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .sp-deck {
+    --deck-nav: 81px;
+    --deck-dock: 3.25rem;
+    --deck-top: calc(var(--deck-nav) + 0.5rem + var(--deck-dock) + 0.75rem);
+    --deck-step: 3.5rem;
+  }
+
+  .pillar-panel {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .sp-dock {
+    position: sticky;
+    top: calc(var(--deck-nav) + 0.5rem);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    height: var(--deck-dock);
+    padding-inline: 1.75rem;
+    overflow: hidden;
+    color: #fff;
+    border-radius: 0 0 28px 28px;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+    background-image:
+      radial-gradient(70% 300% at 0% 0%, color-mix(in srgb, var(--pil-spark-2, var(--pil-spark)) 24%, transparent), transparent 70%),
+      linear-gradient(180deg, #0e2942 0%, #0c2239 100%);
+    box-shadow: 0 30px 50px -40px rgb(11 31 53 / 0.75);
+    transition:
+      border-radius 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+      padding 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.3s ease;
+  }
+  .sp-dock[data-bleed="dual"] {
+    background-image: linear-gradient(180deg, #0e2942 0%, #0c2239 100%);
+  }
+  .sp-dock[data-docked="true"] {
+    border-radius: 16px;
+    padding-inline: 1.15rem;
+    border-top-color: transparent;
+    box-shadow:
+      0 2px 6px rgb(11 31 53 / 0.2),
+      0 18px 36px -20px rgb(11 31 53 / 0.6);
+  }
+
+  /* "Services" while the dock is the panel's footer, the pillar's name once
+     it stands alone — the heading it replaces has just scrolled away. */
+  .sp-dock-title {
+    position: relative;
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-numeric), ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .sp-dock-rest,
+  .sp-dock-name {
+    grid-area: 1 / 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition:
+      opacity 0.25s ease,
+      translate 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .sp-dock-rest {
+    color: rgb(255 255 255 / 0.7);
+  }
+  .sp-dock-name {
+    font-family: var(--font-heading), system-ui, sans-serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+  .sp-dock[data-docked="true"] .sp-dock-rest {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+  .sp-dock[data-docked="true"] .sp-dock-name {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .sp-dock-track {
+    position: absolute;
+    inset-inline: 1.75rem;
+    bottom: 0.7rem;
+    height: 1px;
+    background: rgb(255 255 255 / 0.14);
+    transition: inset 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .sp-dock[data-docked="true"] .sp-dock-track {
+    inset-inline: 1.15rem;
+    bottom: 0.55rem;
+  }
+
+  .sp-deck .pillar-card {
+    /* --stack is measured from the titles above (ServicePillar); the step
+       is the fallback until it has been. */
+    top: calc(var(--deck-top) + var(--stack, calc(var(--i) * var(--deck-step))));
+    transform-origin: 50% 0;
+    /* The settle is driven frame by frame; a transform transition would
+       make it trail the finger. */
+    transition-property: box-shadow, border-color;
+  }
+
+  .pillar-veil {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: #0b1f35;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+  .sp-deck .pillar-card {
+    position: sticky;
+    /* A soft shadow above as well as below, so a card sliding over the one
+       before reads as a sheet on top of it rather than a seam. */
+    box-shadow:
+      0 -14px 28px -22px rgb(11 31 53 / 0.35),
+      0 1px 2px rgb(18 18 18 / 0.04),
+      0 20px 44px -34px rgb(11 31 53 / 0.4);
+  }
+  .sp-deck .pillar-card[data-open="true"] {
+    position: relative;
+    top: auto;
+  }
+}
+
+/* A first card left to CSS ("auto", until the browser reports its width) is
+   open on desktop and closed below it, exactly as it will be once it knows. */
+@media (min-width: 1024px) {
+  .svc-panel[data-open="auto"] {
+    grid-template-rows: 1fr;
+  }
+  .pillar-card[data-open="auto"] .pillar-edge {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  .pillar-card[data-open="auto"] .pillar-wash {
+    opacity: 1;
+  }
+  .pillar-card[data-open="auto"] .pillar-num {
+    background-image: linear-gradient(140deg, var(--pil-spark), #0b1f35);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
 /* ============================================================================
    OUR APPROACH (services page)
    A single straight route through five stages, drawn as you scroll. The home
@@ -1911,5 +2091,94 @@ html[data-sky-seen] .sky-preloader {
   }
   .svt-tile {
     transition: none;
+  }
+}
+
+/* ============================================================================
+   SWIPE ROWS (phones)
+   A list that is a grid from 640px up becomes one row of cards that swipes
+   sideways below it: native scrolling with snap points, bled out to the
+   screen's edges so the next card peeks in and says "there is more". The
+   block padding leaves room for shadows and corner marks, which a scroller
+   would otherwise clip. The meter under it lives in SwipeRow.tsx.
+   ========================================================================== */
+@media (max-width: 639px) {
+  .swipe-row {
+    --swipe-bleed: 2.25rem;
+    display: flex;
+    gap: 0.875rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    flex-direction: row;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--swipe-bleed));
+    padding: 0.75rem var(--swipe-bleed) 1.25rem;
+    scroll-padding-inline: var(--swipe-bleed);
+  }
+  .swipe-row::-webkit-scrollbar {
+    display: none;
+  }
+  .swipe-row > * {
+    flex: 0 0 84%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+}
+
+/* What We Build on phones: descriptions fold behind their titles (the
+   service page's offerings list). Wider screens never see these rules. */
+@media (max-width: 639px) {
+  .svo-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    margin-top: -0.5rem;
+    transition:
+      grid-template-rows 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+      margin-top 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .svo-body[data-open="true"] {
+    grid-template-rows: 1fr;
+    margin-top: 0;
+  }
+  .svo-body > * {
+    overflow: hidden;
+  }
+}
+@media (max-width: 639px) and (prefers-reduced-motion: reduce) {
+  .svo-body {
+    transition: none;
+  }
+}
+
+/* The marketplace board on phones: the same two-column board, tightened —
+   each module's node sits beside its name instead of above it, and the
+   cells lose the height they need on a wide screen. */
+@media (max-width: 639px) {
+  .svc2-cell {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.65rem;
+    min-height: 0;
+    padding: 0.8rem 0.85rem;
+  }
+  .svc2-cell > span:last-child {
+    font-size: 13.5px;
+  }
+  .svc2-node {
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgb(0 194 255 / 0.12);
+  }
+}
+
+/* Related services on phones: a swipe row, so the hub wiring is not drawn. */
+@media (max-width: 639px) {
+  .svr-list .svr-seg,
+  .svr-list .svr-tick,
+  .svr-list .svr-node {
+    display: none;
   }
 }

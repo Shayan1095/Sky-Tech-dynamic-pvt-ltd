@@ -6,6 +6,7 @@ import type { ServicePage } from "@/lib/service-pages/types";
 import { FRAME, FrameRules, H2, INSET, SectionLabel, Words } from "./parts";
 import { revealHead } from "./useSectionReveal";
 import WhyProof from "./WhyProof";
+import { SwipeMeter, useSwipeIndex } from "@/components/shared/SwipeRow";
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -25,11 +26,17 @@ const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffec
 
    Motion, with a purpose each: cards rise in as the grid arrives; each
    card's proof then draws itself; and on a mouse, hovering a card replays
-   it. Under reduced motion everything is simply shown. */
+   it. Under reduced motion everything is simply shown.
+
+   On phones the grid becomes a swipe row, one card at a time with the next
+   peeking in, and a meter underneath — eight stacked cards were the longest
+   stretch of the page. */
 
 export default function ServiceWhy({ page }: { page: ServicePage }) {
   const sectionRef = useRef<HTMLElement>(null);
   const { why } = page;
+  const rowRef = useRef<HTMLUListElement>(null);
+  const swipe = useSwipeIndex(rowRef, why.items.length);
 
   useIsomorphicLayoutEffect(() => {
     const root = sectionRef.current;
@@ -104,7 +111,7 @@ export default function ServiceWhy({ page }: { page: ServicePage }) {
             <Words text={why.heading} />
           </h2>
 
-          <ul className="mt-14 grid gap-4 [grid-auto-flow:dense] sm:grid-cols-2 sm:gap-5 lg:mt-16 lg:grid-cols-12">
+          <ul ref={rowRef} className="swipe-row mt-9 grid gap-4 [grid-auto-flow:dense] sm:mt-14 sm:grid-cols-2 sm:gap-5 lg:mt-16 lg:grid-cols-12">
             {why.items.map((item) => (
               <li
                 key={item.title}
@@ -142,6 +149,8 @@ export default function ServiceWhy({ page }: { page: ServicePage }) {
               </li>
             ))}
           </ul>
+
+          <SwipeMeter {...swipe} count={why.items.length} label="reason" className="mt-3" />
         </div>
       </div>
     </section>

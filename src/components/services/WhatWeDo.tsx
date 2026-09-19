@@ -113,7 +113,10 @@ export default function WhatWeDo() {
 
           {/* The three pillars, each carrying the identity it will wear again
               further down the page. */}
-          <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3 lg:gap-6">
+          {/* On phones the tiles become a compact index — number, name and
+              how many services — because each pillar follows right below
+              with its full list. The list stays in the markup for search. */}
+          <ul className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-5 lg:mt-16 lg:grid-cols-3 lg:gap-6">
             {PILLARS.map((pillar) => {
               const identity = identityFor(pillar.index);
               const bleed = bleedFor(identity);
@@ -128,11 +131,11 @@ export default function WhatWeDo() {
                   <a
                     href={pillarHref(pillar.anchor)}
                     data-bleed={identity.bleed}
-                    className="wwd-tile group flex w-full flex-col rounded-[26px] p-7 text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary sm:p-8"
+                    className="wwd-tile group flex w-full flex-col rounded-[26px] p-7 text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:grid max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:gap-x-4 max-sm:rounded-[22px] max-sm:px-5 max-sm:py-5 sm:p-8"
                   >
                     <Motif kind={identity.motif} className="wwd-motif" />
 
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4 max-sm:row-span-2 max-sm:items-start max-sm:pt-[7px]">
                       <span
                         aria-hidden="true"
                         className="font-mono text-[11px] tracking-[0.18em]"
@@ -140,21 +143,21 @@ export default function WhatWeDo() {
                       >
                         {pillar.index}
                       </span>
-                      <span aria-hidden="true" className="relative block h-[9px] w-[9px] text-white/30 transition-colors duration-500 group-hover:text-white/70">
+                      <span aria-hidden="true" className="relative block h-[9px] w-[9px] text-white/30 max-sm:hidden transition-colors duration-500 group-hover:text-white/70">
                         <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-current" />
                         <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-current" />
                       </span>
                     </div>
 
-                    <h3 className="mt-16 font-display text-[1.3rem] font-medium leading-snug tracking-[-0.02em] sm:text-[1.45rem]">
+                    <h3 className="mt-16 font-display text-[1.3rem] font-medium leading-snug tracking-[-0.02em] max-sm:mt-0 max-sm:pr-8 max-sm:text-[1.15rem] sm:text-[1.45rem]">
                       {pillar.name}
                     </h3>
 
-                    <span aria-hidden="true" className="relative mt-6 block h-px bg-white/12">
+                    <span aria-hidden="true" className="relative mt-6 block h-px bg-white/12 max-sm:hidden">
                       <span className="wwd-card-rule absolute inset-0 bg-white/25" />
                     </span>
 
-                    <ul className="mt-5 space-y-3">
+                    <ul className="mt-5 space-y-3 max-sm:hidden">
                       {pillar.services.map((service) => (
                         <li key={service.name} className="wwd-service flex items-baseline gap-3 text-[14.5px] leading-snug text-white/80">
                           <span
@@ -170,9 +173,10 @@ export default function WhatWeDo() {
                     {/* mt-auto keeps the three actions on one line across tiles
                         that hold five, five and three services. */}
                     <span
-                      className="mt-auto flex items-center gap-3 pt-8 font-mono text-[11px] uppercase tracking-[0.2em] text-white/80 transition-colors duration-500 group-hover:text-white"
+                      className="mt-auto flex items-center gap-3 pt-8 font-mono text-[11px] uppercase tracking-[0.2em] text-white/80 transition-colors duration-500 group-hover:text-white max-sm:mt-0 max-sm:pt-2.5"
                     >
-                      View Services
+                      <span className="sm:hidden">{pillar.services.length} Services</span>
+                      <span className="max-sm:hidden">View Services</span>
                       <svg viewBox="0 0 16 16" className="h-[13px] w-[13px] transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1" fill="none" aria-hidden="true">
                         <path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>

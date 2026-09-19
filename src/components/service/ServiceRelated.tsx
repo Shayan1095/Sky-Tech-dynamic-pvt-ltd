@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
+import { SwipeMeter, useSwipeIndex } from "@/components/shared/SwipeRow";
 import { PILLARS, serviceHref } from "@/lib/pillars";
 import { money } from "@/lib/service-pages/quote";
 import type { ServicePage } from "@/lib/service-pages/types";
@@ -26,7 +28,11 @@ import { useServiceQuote } from "./useServiceQuote";
 
    Names, summaries and "What We Offer" lists come from the Services content
    (src/lib/pillars.ts). The wiring is drawn with plain elements so the
-   entrance can draw it: trunk from the hub, a spine, a tick into each row. */
+   entrance can draw it: trunk from the hub, a spine, a tick into each row.
+
+   On phones the hub tightens to its name, the live estimate and the action,
+   and the related services become a swipe row — the wiring, which needs
+   rows stacked beside a hub, is left out there. */
 
 const build: RevealBuilder<HTMLElement> = (tl) => {
   tl.fromTo(".sv-line", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.55 }, 0)
@@ -45,10 +51,12 @@ const SHOWN_OFFERS = 4;
 export default function ServiceRelated({ page }: { page: ServicePage }) {
   const ref = useSectionReveal(build);
   const { tier, addOns: chosen, selected, estimate, href } = useServiceQuote(page);
+  const rowRef = useRef<HTMLUListElement>(null);
 
   const pillar = PILLARS.find((p) => p.services.some((s) => s.slug === page.slug));
   const self = pillar?.services.find((s) => s.slug === page.slug);
   const others = pillar?.services.filter((s) => s.slug !== page.slug) ?? [];
+  const swipe = useSwipeIndex(rowRef, others.length);
   if (!pillar || !self || !others.length) return null;
 
   const firstTier = page.packages.tiers[0].id;
@@ -80,18 +88,18 @@ export default function ServiceRelated({ page }: { page: ServicePage }) {
             </Link>
           </div>
 
-          <div className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-10 lg:mt-16 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.9fr)] lg:items-center lg:gap-x-12 lg:gap-y-0">
+          <div className="mt-9 grid grid-cols-[minmax(0,1fr)] gap-6 sm:mt-14 sm:gap-10 lg:mt-16 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.9fr)] lg:items-center lg:gap-x-12 lg:gap-y-0">
             {/* The hub: this service, and the visitor's quote so far */}
             <div className="svr-hub relative">
-              <div className="pkg-panel p-7 text-white sm:p-8">
+              <div className="pkg-panel p-6 text-white sm:p-8">
                 <p className="flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.22em] text-white/70">
                   <span aria-hidden="true" className="block h-2 w-2 bg-cta" />
                   You&apos;re Viewing
                 </p>
-                <p className="mt-5 font-display text-[1.6rem] font-semibold leading-tight tracking-[-0.025em]">{self.name}</p>
-                <p className="mt-3 text-[14px] leading-relaxed text-white/75 [text-wrap:pretty]">{self.summary}</p>
+                <p className="mt-4 font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.025em] sm:mt-5 sm:text-[1.6rem]">{self.name}</p>
+                <p className="mt-3 text-[14px] leading-relaxed text-white/75 [text-wrap:pretty] max-sm:hidden">{self.summary}</p>
 
-                <div className="mt-6 border-t border-white/12 pt-5">
+                <div className="mt-5 border-t border-white/12 pt-5 sm:mt-6">
                   <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
                     {edited ? "Your Estimate" : page.packages.priceLabel}
                   </p>
@@ -123,7 +131,8 @@ export default function ServiceRelated({ page }: { page: ServicePage }) {
             </div>
 
             {/* The related services, wired to the hub */}
-            <ul className="svr-list relative flex flex-col gap-4 pl-7 lg:pl-0">
+            <div>
+            <ul ref={rowRef} className="swipe-row svr-list relative flex flex-col gap-4 pl-7 lg:pl-0">
               {others.map((service, i) => {
                 const addOnName = page.relatedAddOns?.[service.name];
                 const addOn = addOnName ? page.addOns?.items.find((a) => a.name === addOnName) : undefined;
@@ -138,7 +147,7 @@ export default function ServiceRelated({ page }: { page: ServicePage }) {
                     <span aria-hidden="true" className="svr-tick" />
                     <span aria-hidden="true" className="svr-node" />
 
-                    <div className="svr-card grid min-w-0 gap-5 rounded-[20px] border border-text/[0.08] bg-bg p-6 sm:p-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-8">
+                    <div className="svr-card grid h-full min-w-0 gap-5 rounded-[20px] border border-text/[0.08] bg-bg p-6 sm:p-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-8">
                       <div className="min-w-0">
                         <h3 className="font-display text-[1.2rem] font-medium leading-snug tracking-[-0.02em] text-text">
                           {service.name}
@@ -204,6 +213,9 @@ export default function ServiceRelated({ page }: { page: ServicePage }) {
                 );
               })}
             </ul>
+
+            <SwipeMeter {...swipe} count={others.length} label="service" className="mt-3" />
+            </div>
           </div>
         </div>
       </div>
