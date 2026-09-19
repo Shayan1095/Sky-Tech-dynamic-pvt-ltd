@@ -2,7 +2,7 @@
 
    Files in public/tech/ come unmodified from Simple Icons 16.31.0
    (https://cdn.jsdelivr.net/npm/simple-icons@16.31.0/icons/, CC0-1.0),
-   downloaded 2026-09-18. The marks remain trademarks of their owners and are
+   downloaded 2026-09-18 (Figma 2026-09-19). The marks remain trademarks of their owners and are
    shown only to say which technologies SKY Tech works with. `hex` is each
    brand's official colour from the same release, used on hover.
 
@@ -36,4 +36,8 @@ export const TECH_LOGOS: Record<string, TechLogo> = {
   Shopify: { file: "shopify", hex: "#7AB55C" },
   MySQL: { file: "mysql", hex: "#4479A1", scale: 1.5 },
   MongoDB: { file: "mongodb", hex: "#47A248" },
+  /* Added 2026-09-19, same release. Adobe Photoshop, Adobe Illustrator and
+     FigJam have no Simple Icons entry (the Adobe marks were removed at
+     Adobe's request), so they show by name. */
+  Figma: { file: "figma", hex: "#F24E1E" },
 };

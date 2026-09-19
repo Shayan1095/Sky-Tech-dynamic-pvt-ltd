@@ -998,9 +998,28 @@ html[data-sky-seen] .sky-preloader {
        is the fallback until it has been. */
     top: calc(var(--deck-top) + var(--stack, calc(var(--i) * var(--deck-step))));
     transform-origin: 50% 0;
-    /* The settle is driven frame by frame; a transform transition would
-       make it trail the finger. */
-    transition-property: box-shadow, border-color;
+    /* The settle (data-depth, set as a card is covered) is a compositor
+       transition of scale alone; nothing else on a card moves while it is
+       stuck. No hover lift here: on touch a tap leaves :hover behind. */
+    transition:
+      scale 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sp-deck .pillar-card:hover {
+    transform: none;
+  }
+  .sp-deck .pillar-card[data-depth="1"] {
+    scale: 0.965;
+  }
+  .sp-deck .pillar-card[data-depth="2"] {
+    scale: 0.93;
+  }
+  .sp-deck .pillar-card[data-depth="1"] .pillar-veil {
+    opacity: 0.05;
+  }
+  .sp-deck .pillar-card[data-depth="2"] .pillar-veil {
+    opacity: 0.1;
   }
 
   .pillar-veil {
@@ -1011,6 +1030,7 @@ html[data-sky-seen] .sky-preloader {
     background: #0b1f35;
     opacity: 0;
     pointer-events: none;
+    transition: opacity 0.45s ease;
   }
 }
 
@@ -1903,6 +1923,21 @@ html[data-sky-seen] .sky-preloader {
   background: var(--color-cta);
   transform: rotate(45deg);
 }
+/* A row shared by several groups names them all; on a phone that line can
+   be wider than the screen, so the names wrap as whole words, centred, and
+   the flanking rules give way. */
+@media (max-width: 639px) {
+  .svt-label {
+    flex-wrap: wrap;
+    row-gap: 0.45rem;
+    padding-inline: 1.25rem;
+    white-space: nowrap;
+  }
+  .svt-label:has(.svt-label-sep)::before,
+  .svt-label:has(.svt-label-sep)::after {
+    display: none;
+  }
+}
 
 /* The rail: a drawing line running through the tiles' centres, full width. */
 .svt-rail {
@@ -2180,5 +2215,138 @@ html[data-sky-seen] .sky-preloader {
   .svr-list .svr-tick,
   .svr-list .svr-node {
     display: none;
+  }
+}
+
+/* ============================================================================
+   CAPABILITY TABS (service pages with three or more specialisms)
+   Chips that swipe on phones and tablets; a ruled index column on desktop,
+   where the chosen entry lights its rule in cyan. Panels below desktop show
+   only the chosen one; on desktop they are stacked in one grid cell, so the
+   band keeps the height of its longest panel and changing tab never moves
+   the page — the change is a short cross-fade.
+   ========================================================================== */
+.svc3-tab {
+  border-color: rgb(255 255 255 / 0.18);
+  color: rgb(255 255 255 / 0.72);
+  transition:
+    color 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+.svc3-tab[data-active="true"] {
+  border-color: #fff;
+  background-color: #fff;
+  color: var(--color-navy);
+}
+.svc3-tab[data-active="true"] .font-mono {
+  color: var(--color-primary);
+}
+.svc3-panel[data-active="false"] {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .svc3-tab,
+  .svc3-tab[data-active="true"] {
+    border-color: rgb(255 255 255 / 0.14);
+    background-color: transparent;
+  }
+  .svc3-tab:last-child {
+    border-bottom: 1px solid rgb(255 255 255 / 0.14);
+  }
+  .svc3-tab[data-active="true"] {
+    color: #fff;
+  }
+  .svc3-tab[data-active="true"] .font-mono {
+    color: var(--color-cta);
+  }
+  /* The rule above the chosen entry draws in cyan. */
+  .svc3-tab::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 1px;
+    background: var(--color-cta);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .svc3-tab[data-active="true"]::before {
+    transform: scaleX(1);
+  }
+  .svc3-arrow {
+    opacity: 0;
+    translate: -6px 0;
+    color: var(--color-cta);
+    transition:
+      opacity 0.25s ease,
+      translate 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .svc3-tab[data-active="true"] .svc3-arrow {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .svc3-panel,
+  .svc3-panel[data-active="false"] {
+    display: block;
+  }
+  .svc3-panel {
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s;
+  }
+  .svc3-panel[data-active="false"] {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .svc3-tab:hover {
+    color: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svc3-panel,
+  .svc3-tab::before,
+  .svc3-arrow {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   PROBLEM → ANSWER board (service pages)
+   The cells share hairlines: the list's own background shows through a 1px
+   gap. An odd last cell spans the row rather than leaving a hole. Phrases
+   are the content's own words, lower-case mid-sentence there, so only their
+   first letter is raised here.
+   ========================================================================== */
+.svp-cells {
+  gap: 1px;
+  background: rgb(18 18 18 / 0.09);
+  border-top: 1px solid rgb(18 18 18 / 0.09);
+}
+.svp-cell {
+  background: var(--color-surface);
+}
+.svp-cells:not(.lg\:grid-cols-3) .svp-cell:last-child:nth-child(odd) {
+  grid-column: span 2;
+}
+.svp-phrase::first-letter {
+  text-transform: uppercase;
+}
+@media (min-width: 1024px) {
+  .svp-cells {
+    border-top: 0;
+  }
+}
+@media (max-width: 1023px) {
+  .svp-cells.lg\:grid-cols-3 .svp-cell:last-child:nth-child(odd) {
+    grid-column: span 2;
   }
 }

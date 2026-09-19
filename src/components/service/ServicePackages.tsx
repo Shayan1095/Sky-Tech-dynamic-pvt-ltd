@@ -178,7 +178,7 @@ export default function ServicePackages({ page }: { page: ServicePage }) {
             <div className="min-w-0 lg:sticky lg:top-40 lg:col-start-2 lg:row-span-2 lg:row-start-1">
               <div ref={panelRef} className="svk-panel pkg-panel p-7 text-white sm:p-9">
                 <p className="sr-only" aria-live="polite">
-                  {`${tier.name}, ${packages.priceLabel.toLowerCase()} ${tier.price}`}
+                  {`${tier.name}, ${(tier.priceLabel ?? packages.priceLabel).toLowerCase()} ${tier.price}`}
                 </p>
 
                 <div className="flex items-center justify-between gap-4">
@@ -194,7 +194,7 @@ export default function ServicePackages({ page }: { page: ServicePage }) {
                     {tier.name}
                   </h3>
                   <div className="text-left sm:text-right">
-                    <PanelLabel>{packages.priceLabel}</PanelLabel>
+                    <PanelLabel>{tier.priceLabel ?? packages.priceLabel}</PanelLabel>
                     <p className="mt-1 font-mono text-[2.3rem] leading-none tracking-[-0.02em] text-white sm:text-[2.6rem]">
                       {tier.price}
                     </p>
@@ -207,7 +207,7 @@ export default function ServicePackages({ page }: { page: ServicePage }) {
                 </div>
 
                 <div className="svk-swap mt-7">
-                  <PanelLabel>Includes</PanelLabel>
+                  <PanelLabel>{tier.includesLabel ?? "Includes"}</PanelLabel>
                   <ul className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
                     {tier.includes.map((item) => (
                       <li key={item} className="flex gap-2.5 text-[14px] leading-snug text-white/85">
@@ -233,7 +233,7 @@ export default function ServicePackages({ page }: { page: ServicePage }) {
 
                 {tier.tech && (
                   <div className="svk-swap mt-7">
-                    <PanelLabel>Technology Options</PanelLabel>
+                    <PanelLabel>{tier.techLabel ?? "Technology Options"}</PanelLabel>
                     <ul className="mt-3 flex flex-wrap gap-2">
                       {tier.tech.map((item) => (
                         <li key={item} className="rounded-md border border-cta/30 bg-cta/[0.08] px-2.5 py-1 font-mono text-[11.5px] tracking-[0.02em] text-cta">
@@ -249,6 +249,12 @@ export default function ServicePackages({ page }: { page: ServicePage }) {
                     <PanelLabel>{tier.audience.label}</PanelLabel>
                     <p className="mt-2 text-[14px] leading-relaxed text-white/75 [text-wrap:pretty]">{tier.audience.text}</p>
                   </div>
+                )}
+
+                {tier.note && (
+                  <p className="svk-swap mt-6 border-l-2 border-cta/60 pl-3.5 text-[13.5px] font-medium leading-relaxed text-white/85 [text-wrap:pretty]">
+                    {tier.note}
+                  </p>
                 )}
 
                 <div className="svk-swap">

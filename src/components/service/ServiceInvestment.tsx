@@ -48,7 +48,19 @@ const STEPS = 1000;
 export default function ServiceInvestment({ page }: { page: ServicePage }) {
   const ref = useSectionReveal(build);
   const { investment, timeline, hero, packages, slug, contactName } = page;
-  const [budget, setBudget] = useState(1000);
+  /* The finder starts at $1,000 for project pricing. Recurring plans
+     (a unit such as "/month"), or a scale $1,000 doesn't fall on, start
+     midway along the scale instead, so the first reading is a typical
+     budget rather than the top of the range. */
+  const [budget, setBudget] = useState(() => {
+    const r = page.investment?.ranges ?? [];
+    if (!r.length) return 1000;
+    const low = Math.min(...r.map((x) => x.min)) * 0.8;
+    const high = Math.max(...r.map((x) => x.max)) * 1.25;
+    const recurring = Boolean(page.investment?.unit);
+    return !recurring && 1000 >= low && 1000 <= high ? 1000 : round(Math.sqrt(low * high));
+  });
+  const unit = page.investment?.unit ?? "";
   const [touched, setTouched] = useState(false);
   if (!investment && !timeline) return null;
 
@@ -87,9 +99,11 @@ export default function ServiceInvestment({ page }: { page: ServicePage }) {
                 <h2 id="investment-heading" className={`${H2} max-w-2xl text-text`}>
                   <Words text={investment.heading} />
                 </h2>
-                <p className="svi-intro mt-6 max-w-xl text-base leading-relaxed text-text/70 [text-wrap:pretty] sm:text-lg">
-                  {investment.intro}
-                </p>
+                {investment.intro && (
+                  <p className="svi-intro mt-6 max-w-xl text-base leading-relaxed text-text/70 [text-wrap:pretty] sm:text-lg">
+                    {investment.intro}
+                  </p>
+                )}
 
                 <p className="svi-intro mt-12 font-mono text-[10.5px] uppercase tracking-[0.2em] text-text/50">{investment.label}</p>
 
@@ -103,6 +117,7 @@ export default function ServiceInvestment({ page }: { page: ServicePage }) {
                     <span className="block font-display text-[15px] font-medium tracking-[-0.01em] text-text">Your budget</span>
                     <output htmlFor={`${slug}-budget`} className="block font-mono text-[1.15rem] tracking-[-0.01em] text-primary sm:mt-0.5">
                       {money(budget)}
+                      {unit}
                     </output>
                   </label>
                   <input
@@ -111,7 +126,7 @@ export default function ServiceInvestment({ page }: { page: ServicePage }) {
                     min={0}
                     max={STEPS}
                     value={toStep(budget)}
-                    aria-valuetext={money(budget)}
+                    aria-valuetext={`${money(budget)}${unit}`}
                     onChange={(e) => {
                       setBudget(toBudget(Number(e.target.value)));
                       setTouched(true);
@@ -193,6 +208,7 @@ export default function ServiceInvestment({ page }: { page: ServicePage }) {
                     <p className="flex flex-wrap items-center gap-x-3 gap-y-2">
                       <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-text/50">
                         Fits {money(budget)}
+                        {unit}
                       </span>
                       {suggested.map((t) => (
                         <a
@@ -221,7 +237,41 @@ export default function ServiceInvestment({ page }: { page: ServicePage }) {
                   )}
                 </div>
 
-                <p className="svi-intro mt-8 max-w-xl text-[15px] leading-relaxed text-text/70 [text-wrap:pretty]">{investment.note}</p>
+                {investment.note && (
+                  <p className="svi-intro mt-8 max-w-xl text-[15px] leading-relaxed text-text/70 [text-wrap:pretty]">{investment.note}</p>
+                )}
+
+                {investment.important && (
+                  <div className="svi-intro mt-8 max-w-2xl rounded-2xl border border-primary/20 bg-bg p-5 sm:p-6">
+                    <p className="text-[14.5px] leading-relaxed text-text [text-wrap:pretty]">
+                      {investment.important.label && (
+                        <span className="mr-2 font-mono text-[10.5px] uppercase tracking-[0.2em] text-primary">
+                          {investment.important.label}
+                        </span>
+                      )}
+                      {investment.important.text}
+                    </p>
+                    {investment.important.list && (
+                      <>
+                        {investment.important.listLabel && (
+                          <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.18em] text-text/50">
+                            {investment.important.listLabel}
+                          </p>
+                        )}
+                        <ul className="mt-3 flex flex-wrap gap-2">
+                          {investment.important.list.map((item) => (
+                            <li key={item} className="rounded-full border border-text/10 bg-surface px-3 py-1 text-[13px] text-text/75">
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {investment.important.closing && (
+                      <p className="mt-4 text-[14px] leading-relaxed text-text/70">{investment.important.closing}</p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -238,7 +288,15 @@ export default function ServiceInvestment({ page }: { page: ServicePage }) {
                   {hero.timeline && (
                     <div className="mt-8 border-t border-text/10 pt-7">
                       <p className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-text/50">{hero.timeline.label}</p>
-                      <p className="mt-2 font-mono text-[3rem] leading-none tracking-[-0.04em] text-primary sm:text-[3.4rem]">
+                      {/* A longer figure ("1–2 business days") is set smaller
+                          so it holds to one or two lines in the card. */}
+                      <p
+                        className={`mt-2 font-mono tracking-[-0.04em] text-primary ${
+                          hero.timeline.value.length > 10
+                            ? "text-[2.1rem] leading-[1.05]"
+                            : "text-[3rem] leading-none sm:text-[3.4rem]"
+                        }`}
+                      >
                         {hero.timeline.value}
                       </p>
                     </div>

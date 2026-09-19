@@ -10,13 +10,14 @@ import {
   useState,
   useSyncExternalStore,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { submitContact } from "@/app/contact/actions";
 import ServiceSelect from "@/components/contact/ServiceSelect";
 import { combinationLabel, findCombination } from "@/lib/packages";
 import { ADDON_SEPARATOR, readAddOns } from "@/lib/service-pages/addons";
-import { estimate, money } from "@/lib/service-pages/quote";
+import { estimate, formatEstimate, headline } from "@/lib/service-pages/quote";
 import {
   CUSTOM_BUDGET,
   ENQUIRY_LABELS,
@@ -64,10 +65,11 @@ function useChosenPackage() {
   return slug ? findCombination(slug) : undefined;
 }
 
-/* A quote built on a service page arrives as ?service=…&budget=…&addons=A|B.
-   Each part is checked before anything is shown: the service must exist, the
-   package must be one of that service's, and every add-on must be on that
-   service's list — so a hand-edited link can't put words in the enquiry. */
+/* A quote built on a service page arrives as ?service=…&budget=…&addons=A|B
+   — a package on its own, add-ons on their own, or both. Each part is checked
+   before anything is shown: the service must exist, the package must be one
+   of that service's, and every add-on must be on that service's list — so a
+   hand-edited link can't put words in the enquiry. */
 function useRequestedQuote() {
   const query = useSyncExternalStore(noSubscribe, () => window.location.search, () => "");
   const params = new URLSearchParams(query);
@@ -75,7 +77,7 @@ function useRequestedQuote() {
   if (!service || !isService(service)) return null;
   const tier = packagesFor(service).find((p) => p.name === params.get("budget"));
   const addOns = readAddOns(service, params.get("addons"));
-  if (!addOns.length) return null;
+  if (!tier && !addOns.length) return null;
   return { service, tier, addOns, estimate: estimate(tier?.price, addOns) };
 }
 
@@ -160,6 +162,59 @@ function Field({
   );
 }
 
+/* A choice the visitor made before arriving, shown back as settled. */
+function SelectionCard({
+  label,
+  rows,
+  note,
+  onChange,
+  children,
+}: {
+  label: string;
+  rows: readonly { name: string; value?: string; quiet?: boolean }[];
+  note?: string;
+  onChange: () => void;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="mt-7 rounded-2xl border border-primary/20 bg-primary/[0.035] p-4 sm:p-5">
+      {children}
+      <div className="flex items-center justify-between gap-4">
+        <p className="flex items-center gap-2.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary">
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3" fill="none">
+            <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {label}
+        </p>
+        <button
+          type="button"
+          onClick={onChange}
+          className="-my-2 inline-flex min-h-11 items-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-text/60 underline decoration-text/25 underline-offset-4 transition-colors duration-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          Change
+        </button>
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {rows.map((row) => (
+          <li key={row.name} className="flex items-baseline justify-between gap-4">
+            <span
+              className={
+                row.quiet
+                  ? "text-[14px] text-text/70"
+                  : "font-display text-[15px] font-medium tracking-[-0.01em] text-text"
+              }
+            >
+              {row.name}
+            </span>
+            {row.value && <span className="shrink-0 font-mono text-[13px] text-text/65">{row.value}</span>}
+          </li>
+        ))}
+      </ul>
+      {note && <p className="mt-3 border-t border-primary/15 pt-3 text-[13px] leading-relaxed text-text/65">{note}</p>}
+    </div>
+  );
+}
+
 export default function ContactForm() {
   const sectionRef = useRef<HTMLElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -180,6 +235,39 @@ export default function ContactForm() {
   const enquiryType = useEnquiryType();
   const chosenPackage = useChosenPackage();
   const requestedQuote = useRequestedQuote();
+
+  /* Arriving from a service page, the service and package are chosen for
+     the visitor straight away — step 2 opens with them already selected, and
+     the summary above step 1 shows what they picked. Applied after hydration
+     (the server can't see the query), and only once, so anything the
+     visitor then changes by hand is left alone. State follows the query
+     during render, React's pattern for adjusting state to a new input. */
+  const query = useSyncExternalStore(noSubscribe, () => window.location.search, () => "");
+  const [appliedQuery, setAppliedQuery] = useState("");
+  /* "Change" on a carried-over selection hands the pickers back. */
+  const [editingSelection, setEditingSelection] = useState(false);
+  if (query && query !== appliedQuery) {
+    setAppliedQuery(query);
+    const params = new URLSearchParams(query);
+    const requested = params.get("service");
+    if (requested && isService(requested)) {
+      setService(requested);
+      const tier = params.get("budget");
+      if (tier && packagesFor(requested).some((p) => p.name === tier)) setBudget(tier);
+    }
+  }
+
+  /* A package carried over from a service page stays confirmed while the
+     service and package still match it; a combination from the Services
+     page, while no single service has been picked instead. */
+  const lockedQuote =
+    !editingSelection &&
+    requestedQuote?.tier &&
+    service === requestedQuote.service &&
+    budget === requestedQuote.tier.name
+      ? { tier: requestedQuote.tier, addOns: requestedQuote.addOns, estimate: requestedQuote.estimate }
+      : null;
+  const lockedCombination = !editingSelection && !service && enquiryType === "package" ? chosenPackage : undefined;
 
   /* Section entrance, once. */
   useIsomorphicLayoutEffect(() => {
@@ -251,21 +339,6 @@ export default function ContactForm() {
     if (first) {
       focusField(first);
       return;
-    }
-    /* A link such as /contact?service=Google%20Ads preselects the service, so
-       service pages can send visitors straight to a pre-filled form. Read
-       here, as step 2 opens, so the server and first client render match. */
-    if (!service) {
-      const query = new URLSearchParams(window.location.search);
-      const requested = query.get("service");
-      if (requested && isService(requested)) {
-        setService(requested);
-        /* A service page's package buttons add &budget=<package name>, so
-           the visitor lands with their package already chosen. Only a
-           package that belongs to that service is accepted. */
-        const tier = query.get("budget");
-        if (tier && packagesFor(requested).some((p) => p.name === tier)) setBudget(tier);
-      }
     }
     setStep(2);
     requestAnimationFrame(() => stepRefs.current[1]?.querySelector<HTMLElement>("h3")?.focus());
@@ -393,14 +466,18 @@ export default function ContactForm() {
                       they belong to is still the one selected. */}
                   {requestedQuote && (
                     <>
-                      {service === requestedQuote.service && (
+                      {service === requestedQuote.service && requestedQuote.addOns.length > 0 && (
                         <input
                           type="hidden"
                           name="addons"
                           value={requestedQuote.addOns.map((a) => a.name).join(ADDON_SEPARATOR)}
                         />
                       )}
-                      <div className="mt-8 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5">
+                      {/* On step 2 the selection card below says the same. */}
+                      <div
+                        hidden={step === 2 && !!lockedQuote}
+                        className="mb-10 mt-8 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5"
+                      >
                         <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary">
                           Your {requestedQuote.service} Quote
                         </p>
@@ -419,15 +496,17 @@ export default function ContactForm() {
                           ))}
                         </ul>
                         <p className="mt-3 border-t border-primary/15 pt-3 text-[13px] leading-relaxed text-text/70">
-                          Estimated from{" "}
-                          <span className="font-mono text-text">
-                            {money(requestedQuote.estimate.from)}
-                            {requestedQuote.estimate.open ? "+" : ""}
-                          </span>
-                          {requestedQuote.estimate.monthly > 0 && (
-                            <> + <span className="font-mono text-text">{money(requestedQuote.estimate.monthly)}/month</span></>
+                          {headline(requestedQuote.estimate) ? (
+                            <>
+                              Estimated from{" "}
+                              <span className="font-mono text-text">{formatEstimate(requestedQuote.estimate)}</span>
+                            </>
+                          ) : (
+                            "Custom quote"
                           )}
-                          {requestedQuote.estimate.custom.length > 0 && <>, with custom items quoted after review</>}
+                          {headline(requestedQuote.estimate) && requestedQuote.estimate.custom.length > 0 && (
+                            <>, with custom items quoted after review</>
+                          )}
                           . We&apos;ll confirm the final quote once we&apos;ve reviewed your requirements.
                         </p>
                       </div>
@@ -440,7 +519,10 @@ export default function ContactForm() {
                       {chosenPackage && (
                         <input type="hidden" name="package" value={combinationLabel(chosenPackage)} />
                       )}
-                      <div className="mt-8 flex items-start gap-4 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5">
+                      <div
+                        hidden={step === 2 && !!lockedCombination}
+                        className="mt-8 flex items-start gap-4 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5"
+                      >
                         <span aria-hidden="true" className="mt-[3px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
                             <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -509,7 +591,37 @@ export default function ContactForm() {
                   <div ref={(el) => { stepRefs.current[1] = el; }} hidden={step !== 2}>
                     {stepHeader(2, "Project Details")}
 
+                    {/* What the visitor already chose on a service page (a
+                        package) or on the Services page (a combination) is
+                        confirmed here instead of being asked for again. The
+                        pickers come back if they choose to change it. */}
+                    {lockedQuote ? (
+                      <SelectionCard
+                        label="Your Selection"
+                        onChange={() => setEditingSelection(true)}
+                        rows={[
+                          { name: service },
+                          { name: lockedQuote.tier.name, value: lockedQuote.tier.price },
+                          ...lockedQuote.addOns.map((a) => ({ name: `+ ${a.name}`, value: a.price, quiet: true })),
+                        ]}
+                        note={`${headline(lockedQuote.estimate) ? `Estimated from ${formatEstimate(lockedQuote.estimate)}` : "Custom quote"}${
+                          headline(lockedQuote.estimate) && lockedQuote.estimate.custom.length > 0 ? ", with custom items quoted after review" : ""
+                        }.`}
+                      >
+                        <input type="hidden" name="need" value={service} />
+                        <input type="hidden" name="budget" value={budget} />
+                      </SelectionCard>
+                    ) : lockedCombination ? (
+                      <SelectionCard
+                        label="Your Service Package"
+                        onChange={() => setEditingSelection(true)}
+                        rows={lockedCombination.parts.map((part) => ({ name: part }))}
+                        note={lockedCombination.outcome}
+                      />
+                    ) : null}
+
                     {/* Service — branded picker grouped by category */}
+                    {!lockedQuote && !lockedCombination && (
                     <ServiceSelect
                       name="need"
                       label="What do you need?"
@@ -522,15 +634,19 @@ export default function ContactForm() {
                       error={errors.need}
                       className="mt-7"
                     />
+                    )}
 
                     {/* Budget — the chosen service's packages, plus a custom amount */}
+                    {!lockedQuote && (
                     <fieldset className="mt-8">
                       <legend className={`text-[0.78rem] font-medium tracking-[0.01em] ${errors.budget ? ERROR : "text-text/55"}`}>
                         Estimated Budget
                       </legend>
                       {!service && (
                         <p className="mt-2 text-[0.85rem] text-text/55">
-                          Select a service to see its packages, or enter a custom budget.
+                          {lockedCombination
+                            ? "Packages are quoted after review. Add a budget if you have one in mind."
+                            : "Select a service to see its packages, or enter a custom budget."}
                         </p>
                       )}
 
@@ -575,6 +691,7 @@ export default function ContactForm() {
                         <Field name="budgetCustom" label="Your budget" required error={errors.budgetCustom} className="mt-3" />
                       )}
                     </fieldset>
+                    )}
 
                     <div className="mt-6 grid gap-x-8 gap-y-5">
                       <Field name="details" label="Project Details" multiline error={errors.details} />

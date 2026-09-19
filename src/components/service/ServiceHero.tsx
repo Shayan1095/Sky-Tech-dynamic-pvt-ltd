@@ -247,7 +247,7 @@ export default function ServiceHero({ page }: { page: ServicePage }) {
                       </span>
                       <span className="shrink-0 text-right">
                         <span className="block font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/45">
-                          {packages.priceLabel}
+                          {tier.priceLabel ?? packages.priceLabel}
                         </span>
                         <span className="block font-mono text-[1.02rem] tracking-[0.01em] text-white">
                           {tier.price}

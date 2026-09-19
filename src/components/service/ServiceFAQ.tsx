@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
 import type { ServicePage } from "@/lib/service-pages/types";
-import { Arrow, FRAME, FrameRules, H2, INSET, SectionLabel, consultationHref, Words } from "./parts";
+import { Arrow, FRAME, FrameRules, H2, INSET, Rich, SectionLabel, consultationHref, Words } from "./parts";
 import { revealHead, useSectionReveal, type RevealBuilder } from "./useSectionReveal";
 
 /* Section 10 — questions.
@@ -92,9 +92,18 @@ export default function ServiceFAQ({ page }: { page: ServicePage }) {
 
                   <div id={panelId} className="svc-panel" data-open={isOpen} {...(isOpen ? {} : { inert: true })}>
                     <div>
-                      <p className="max-w-2xl pb-7 pl-[calc(1.25rem+3ch)] text-[15px] leading-relaxed text-text/75 [text-wrap:pretty] sm:pl-[calc(1.5rem+3ch)] sm:text-base">
-                        {item.answer}
-                      </p>
+                      {/* Answers may run to several paragraphs (blank-line
+                          separated) and use the page's inline markers. */}
+                      {item.answer.split("\n\n").map((paragraph, p, all) => (
+                        <p
+                          key={p}
+                          className={`max-w-2xl pl-[calc(1.25rem+3ch)] text-[15px] leading-relaxed text-text/75 [text-wrap:pretty] sm:pl-[calc(1.5rem+3ch)] sm:text-base ${
+                            p === all.length - 1 ? "pb-7" : "pb-3"
+                          }`}
+                        >
+                          <Rich text={paragraph} />
+                        </p>
+                      ))}
                     </div>
                   </div>
                 </li>

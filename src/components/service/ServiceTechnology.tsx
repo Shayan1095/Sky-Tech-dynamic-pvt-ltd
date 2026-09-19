@@ -76,13 +76,17 @@ export default function ServiceTechnology({ page }: { page: ServicePage }) {
 
       <div className={`relative ${FRAME}`}>
         <div className={`flex flex-col items-center pb-14 pt-24 text-center sm:pb-16 sm:pt-28 lg:pt-32 ${INSET}`}>
-          <p className="flex items-center gap-4">
-            <span aria-hidden="true" className="svg-rule block h-px w-10 bg-cta" />
-            <span className="svg-count font-mono text-[11px] uppercase tracking-[0.22em] text-cta sm:text-xs">
-              {count} Technologies
-            </span>
-            <span aria-hidden="true" className="svg-rule block h-px w-10 bg-cta" />
-          </p>
+          {/* Counted from the brand technologies only; a service with only
+              a handful shows no count. */}
+          {count >= 4 && (
+            <p className="flex items-center gap-4">
+              <span aria-hidden="true" className="svg-rule block h-px w-10 bg-cta" />
+              <span className="svg-count font-mono text-[11px] uppercase tracking-[0.22em] text-cta sm:text-xs">
+                {count} Technologies
+              </span>
+              <span aria-hidden="true" className="svg-rule block h-px w-10 bg-cta" />
+            </p>
+          )}
 
           <h2
             id="technology-heading"
@@ -91,9 +95,11 @@ export default function ServiceTechnology({ page }: { page: ServicePage }) {
             <Words text={technology.heading} />
           </h2>
 
-          <p className="svg-intro mt-7 max-w-2xl text-base leading-relaxed text-white/85 [text-wrap:balance] sm:text-lg">
-            {technology.intro}
-          </p>
+          {technology.intro && (
+            <p className="svg-intro mt-7 max-w-2xl text-base leading-relaxed text-white/85 [text-wrap:balance] sm:text-lg">
+              {technology.intro}
+            </p>
+          )}
         </div>
       </div>
 

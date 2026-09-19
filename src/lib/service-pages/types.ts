@@ -21,28 +21,64 @@ export type ServiceTier = {
   /* Verbatim, e.g. "$299" or "$2,500+". Always US dollars. */
   price: string;
   includes: readonly string[];
-  /* "Technology Options" — the stack this tier can be built on. */
+  /* "Technology Options" — the stack this tier can be built on. Social
+     media packages list their "Platforms" here instead (techLabel). */
   tech?: readonly string[];
+  techLabel?: string;
   /* "Recommended For" or "Ideal For", with the label the content uses. */
   audience?: { label: string; text: string };
   /* "Examples" — what this tier can be. */
   examples?: readonly string[];
+  /* Per-tier wording where one package differs from the rest: Website
+     Maintenance's custom plan is "Pricing: Custom Quote" and "Can Include". */
+  priceLabel?: string;
+  includesLabel?: string;
+  /* A line the content sets under one package, e.g. Starter Hosting's
+     "Domain registration may be included…". */
+  note?: string;
   cta: string;
 };
 
 /* A bespoke offering beyond the packages: Web Development's marketplace
-   solutions, Digital Marketing's SEO service, and so on. */
+   solutions, UI/UX Design's specialisms (website, mobile app, dashboards,
+   UX audit), and so on. One or two render as full navy bands; three or more
+   as one band with a tab per offering, so the page doesn't grow by a screen
+   per specialism.
+
+   A capability carries one list (`listLabel` + `list`) or several (`lists`,
+   e.g. "We Design" and "Our Focus"). The CTA is optional: a deliverables
+   list has nothing to sell on its own. */
 export type ServiceCapability = {
   id: string;
   title: string;
+  /* The content's sub-heading, e.g. "Make Complex Systems Feel Simple". */
+  subtitle?: string;
   body: readonly string[];
-  listLabel: string;
-  list: readonly string[];
+  listLabel?: string;
+  list?: readonly string[];
+  lists?: readonly { label: string; items: readonly string[] }[];
+  /* Titled entries with a line each, e.g. Social Media Management's
+     "Platforms We Manage" (Facebook: "Build your community…"). */
+  items?: readonly { title: string; body: string }[];
+  /* A closing line after everything else, unlabelled ("We use these
+     insights to…"). */
+  closing?: string;
+  /* Priced plans offered alongside the main packages, e.g. Video Editing's
+     "Monthly Video Content Packages". Each can be requested directly; its
+     name must also be in the contact form's package list. */
+  plans?: readonly { name: string; price: string; includes: readonly string[]; bestFor: string }[];
   priceLabel?: string;
   price?: string;
   priceNote?: string;
-  cta: string;
+  /* A closing line after the lists, optionally labelled ("Important"). */
+  note?: { label?: string; text: string };
+  cta?: string;
 };
+
+/* Every list a capability carries, however the content gave them. */
+export function capabilityLists(cap: ServiceCapability) {
+  return cap.lists ?? (cap.list ? [{ label: cap.listLabel ?? "", items: cap.list }] : []);
+}
 
 export type ServiceCostRange = {
   label: string;
@@ -116,6 +152,9 @@ export type ServicePage = {
     intro: string;
     columns: readonly [string, string];
     items: readonly { name: string; price: string }[];
+    /* A footnote under the list, e.g. "Advertising budget is not included
+       in management fees." */
+    note?: string;
   };
 
   technology?: {
@@ -140,7 +179,19 @@ export type ServicePage = {
     intro: string;
     label: string;
     ranges: readonly ServiceCostRange[];
-    note: string;
+    note?: string;
+    /* Appended to amounts on the budget finder — "/month" for services
+       priced by the month. */
+    unit?: string;
+    /* A labelled caveat under the chart, as Hosting & Domain's "Important:
+       … Prices may vary based on …". */
+    important?: {
+      label?: string;
+      text: string;
+      listLabel?: string;
+      list?: readonly string[];
+      closing?: string;
+    };
   };
 
   timeline?: { heading: string; paragraphs: readonly string[] };

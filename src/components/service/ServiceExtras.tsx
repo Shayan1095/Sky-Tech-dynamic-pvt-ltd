@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { addOnId } from "@/lib/service-pages/addons";
-import { money } from "@/lib/service-pages/quote";
+import { headline, money, recurringExtras } from "@/lib/service-pages/quote";
 import type { ServicePage } from "@/lib/service-pages/types";
 import { Arrow, FRAME, FrameRules, H2, INSET, SectionLabel, Words } from "./parts";
 import { quote } from "./quoteStore";
@@ -47,15 +47,14 @@ function Tick() {
 /* The estimate figure counts to its new value rather than jumping, so the
    visitor sees the ticked add-on land in the total. React renders the first
    value only; every later value is written here, so the two never fight. */
-function Figure({ value, open }: { value: number; open: boolean }) {
+function Figure({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const shown = useRef(value);
-  const [first] = useState(() => money(value) + (open ? "+" : ""));
+  const [first] = useState(() => money(value) + suffix);
 
   useIsomorphicLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const suffix = open ? "+" : "";
     if (shown.current === value || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       shown.current = value;
       el.textContent = money(value) + suffix;
@@ -74,7 +73,7 @@ function Figure({ value, open }: { value: number; open: boolean }) {
     return () => {
       tween.kill();
     };
-  }, [value, open]);
+  }, [value, suffix]);
 
   return (
     <span ref={ref} suppressHydrationWarning>
@@ -121,9 +120,11 @@ export default function ServiceExtras({ page }: { page: ServicePage }) {
               <h2 id="add-ons-heading" className={`${H2} mt-8 max-w-3xl text-text`}>
                 <Words text={addOns.heading} />
               </h2>
-              <p className="svx-intro mt-6 max-w-xl text-base leading-relaxed text-text/70 [text-wrap:pretty] sm:text-lg">
-                {addOns.intro}
-              </p>
+              {addOns.intro && (
+                <p className="svx-intro mt-6 max-w-xl text-base leading-relaxed text-text/70 [text-wrap:pretty] sm:text-lg">
+                  {addOns.intro}
+                </p>
+              )}
 
               <div className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-10 lg:mt-14 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:items-start lg:gap-14">
                 {/* The checklist */}
@@ -139,6 +140,25 @@ export default function ServiceExtras({ page }: { page: ServicePage }) {
                     {addOns.items.map((item) => {
                       const checked = selected.includes(item.name);
                       const quoted = !/\d/.test(item.price);
+                      /* Something every package already includes ("Social
+                         Media Reporting: Included in packages") is listed,
+                         but not offered as a choice — ticking it would add
+                         nothing. */
+                      if (/^included/i.test(item.price.trim())) {
+                        return (
+                          <li key={item.name} id={`addon-${addOnId(item.name)}`} className="sky-anchor">
+                            <div className="flex items-center gap-4 border-b border-text/[0.08] py-3.5 pl-1 pr-1 sm:pl-2">
+                              <span aria-hidden="true" className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] bg-primary/10 text-primary">
+                                <Tick />
+                              </span>
+                              <span className="min-w-0 flex-1 text-[15px] text-text/70">{item.name}</span>
+                              <span className="shrink-0 whitespace-nowrap font-mono text-[13.5px] tracking-[0.01em] text-primary">
+                                {item.price}
+                              </span>
+                            </div>
+                          </li>
+                        );
+                      }
                       return (
                         <li key={item.name} id={`addon-${addOnId(item.name)}`} className="sky-anchor">
                           <label className="svx-opt group flex cursor-pointer items-center gap-4 border-b border-text/[0.08] py-3.5 pl-1 pr-1 sm:pl-2">
@@ -166,6 +186,10 @@ export default function ServiceExtras({ page }: { page: ServicePage }) {
                       );
                     })}
                   </ul>
+
+                  {addOns.note && (
+                    <p className="mt-4 text-[13.5px] italic leading-relaxed text-text/60 [text-wrap:pretty]">{addOns.note}</p>
+                  )}
                 </fieldset>
 
                 {/* The estimate */}
@@ -211,15 +235,20 @@ export default function ServiceExtras({ page }: { page: ServicePage }) {
                     <div className="mt-6">
                       <p className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-text/50">Estimated From</p>
                       <p aria-live="polite" className="mt-1.5 font-mono text-[2.6rem] leading-none tracking-[-0.03em] text-text sm:text-[2.9rem]">
-                        <Figure value={estimate.from} open={estimate.open} />
+                        {(() => {
+                          /* One-off total first; a monthly plan on its own
+                             leads with its monthly figure. */
+                          const h = headline(estimate);
+                          return h ? <Figure value={h.value} suffix={h.suffix} /> : "Custom Quote";
+                        })()}
                       </p>
-                      {(estimate.monthly > 0 || estimate.custom.length > 0) && (
+                      {(recurringExtras(estimate).length > 0 || estimate.custom.length > 0) && (
                         <ul className="mt-3 space-y-1 text-[13px] leading-relaxed text-text/65">
-                          {estimate.monthly > 0 && (
-                            <li>
-                              + <span className="font-mono text-primary">{money(estimate.monthly)}/month</span> ongoing
+                          {recurringExtras(estimate).map((part) => (
+                            <li key={part}>
+                              + <span className="font-mono text-primary">{part}</span> ongoing
                             </li>
-                          )}
+                          ))}
                           {estimate.custom.length > 0 && (
                             <li>
                               + {estimate.custom.length === 1 ? estimate.custom[0] : `${estimate.custom.length} items`}, quoted after review

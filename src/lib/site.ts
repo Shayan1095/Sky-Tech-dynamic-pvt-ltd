@@ -1,12 +1,25 @@
 import type { Metadata } from "next";
 import { BUILT_SERVICE_SLUGS, servicePagePath } from "@/lib/service-pages/built";
 
-/* Site-wide identity and SEO helpers. The live address comes from
-   NEXT_PUBLIC_SITE_URL (set it in the hosting dashboard once the domain is
-   confirmed); until then it falls back to the website listed in
-   src/content/contact.md. */
+/* Site-wide identity and SEO helpers. The live address, in order:
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://skytech.com.pk").replace(/\/+$/, "");
+   1. NEXT_PUBLIC_SITE_URL, when set in the hosting dashboard. Set it on any
+      host other than Vercel (Hostinger included) once the domain is live.
+   2. On Vercel, the project's production address, which Vercel passes to
+      every build — the vercel.app address today, the custom domain as soon
+      as one is attached. This is what makes link previews work before the
+      domain exists: the share image is fetched from an address that is
+      actually serving the site.
+   3. The website listed in src/content/contact.md.
+
+   Server-only: used for metadata, the sitemap, robots and structured data,
+   never in anything rendered on the client. */
+
+const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || (vercel ? `https://${vercel}` : "https://skytech.com.pk")
+).replace(/\/+$/, "");
 export const SITE_NAME = "SKY Tech Dynamic";
 
 export const DEFAULT_TITLE = "SKY Tech | Web Development, Digital Marketing & AI Solutions";
@@ -50,10 +63,22 @@ export function pageMetadata({
       url: path,
       title,
       description,
+      images: [SHARE_IMAGE],
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, images: [SHARE_IMAGE] },
   };
 }
+
+/* The link-preview card (src/app/opengraph-image.tsx). Next only attaches it
+   automatically to pages that leave openGraph alone; a page that sets its own
+   openGraph replaces the whole object, image included — so every page built
+   with pageMetadata names it explicitly. */
+export const SHARE_IMAGE = {
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
+  alt: "SKY Tech Dynamic — Web Development, Digital Marketing & AI Solutions",
+};
 
 /* Opens the Contact form with a service preselected. */
 export function contactHref(service: string) {

@@ -63,9 +63,14 @@ export default function ServiceClosing({ page }: { page: ServicePage }) {
             <Words text={closing.heading} />
           </h2>
 
-          <p className="svz-body mt-8 max-w-2xl text-base leading-relaxed text-white [text-wrap:pretty] sm:text-lg">
-            {closing.body}
-          </p>
+          {closing.body.split("\n\n").map((paragraph, i) => (
+            <p
+              key={i}
+              className={`svz-body ${i === 0 ? "mt-8" : "mt-4"} max-w-2xl text-base leading-relaxed text-white [text-wrap:pretty] sm:text-lg`}
+            >
+              {paragraph}
+            </p>
+          ))}
 
           <blockquote className="relative mt-12 max-w-2xl">
             <span aria-hidden="true" className="svz-quote-rule mx-auto block h-px w-14 bg-cta" />

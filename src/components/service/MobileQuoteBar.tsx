@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { money } from "@/lib/service-pages/quote";
+import { headlineText } from "@/lib/service-pages/quote";
 import type { ServicePage } from "@/lib/service-pages/types";
 import { Arrow } from "./parts";
 import { useServiceQuote } from "./useServiceQuote";
@@ -67,13 +67,13 @@ export default function MobileQuoteBar({ page }: { page: ServicePage }) {
             {edited ? "Your Estimate" : page.packages.priceLabel}
           </span>
           <span className="block font-mono text-[1.05rem] text-text">
-            {money(estimate.from)}
-            {estimate.open ? "+" : ""}
+            {/* The package's own wording ("$25/video") until add-ons make it a sum. */}
+            {addOns.length ? headlineText(estimate) : tier.price}
           </span>
         </p>
         <Link
           href={edited ? href : `/contact?service=${encodeURIComponent(page.contactName)}#contact-form`}
-          className="flex min-h-[48px] min-w-0 items-center gap-2.5 whitespace-nowrap rounded-full bg-primary px-5 text-[11.5px] font-semibold uppercase tracking-[0.05em] text-white [transition:scale_140ms_cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.97]"
+          className="flex min-h-[48px] min-w-0 items-center gap-2.5 rounded-full bg-primary px-5 py-2 text-left text-[11.5px] leading-tight font-semibold uppercase tracking-[0.05em] text-white [transition:scale_140ms_cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.97]"
         >
           {page.hero.primaryCta}
           <Arrow className="shrink-0" />

@@ -24,30 +24,38 @@ export const SERVICE_GROUPS: Array<{
         ],
       },
       {
-        // Pricing marked PENDING_CONFIRMATION in wordpress-development.md.
+        // The detailed packages in wordpress-development.md, in US dollars;
+        // the PKR table there is PENDING_CONFIRMATION and not used.
         name: "WordPress Development",
         packages: [
-          { name: "Starter", price: "PKR 25,000" },
-          { name: "Professional", price: "PKR 55,000" },
-          { name: "Business", price: "PKR 100,000" },
+          { name: "WordPress Starter", price: "$299" },
+          { name: "WordPress Business", price: "$500" },
+          { name: "WordPress Advanced", price: "$800" },
+          { name: "WooCommerce Store", price: "$600" },
+          { name: "Custom WooCommerce Solution", price: "$1,500" },
         ],
       },
       {
+        // The detailed packages in ui-ux-design.md; the summary table at
+        // the end of that file is not used, as on Web Development.
         name: "UI/UX Design",
         packages: [
-          { name: "Website Redesign", price: "$500-$1,000" },
-          { name: "Mobile App UI", price: "$1,000-$2,500" },
-          { name: "Design System", price: "$1,500-$3,000" },
-          { name: "UX Audit & Recommendations", price: "$500-$1,000" },
+          { name: "UI Starter", price: "$200" },
+          { name: "UI/UX Professional", price: "$400" },
+          { name: "UI/UX Advanced", price: "$800" },
+          { name: "Product Design", price: "$1,500" },
         ],
       },
       {
+        // The detailed packages in graphic-design.md; the summary table at
+        // the end of that file is not used.
         name: "Graphic Design",
         packages: [
-          { name: "Logo Design", price: "$299-$599" },
-          { name: "Brand Identity Package", price: "$999-$1,999" },
-          { name: "Marketing Collateral", price: "$500-$1,200" },
-          { name: "Ongoing Design Support", price: "$500+/month" },
+          { name: "Essential Design", price: "$99" },
+          { name: "Business Design", price: "$249" },
+          { name: "Professional Creative", price: "$499" },
+          { name: "Complete Brand Identity", price: "$799" },
+          { name: "Custom Design Partnership", price: "Custom Quote" },
         ],
       },
     ],
@@ -65,12 +73,15 @@ export const SERVICE_GROUPS: Array<{
         ],
       },
       {
+        // The detailed packages in social-media-management.md; the summary
+        // table at the end of that file (which reuses Digital Marketing's
+        // package names) is not used.
         name: "Social Media Management",
         packages: [
-          { name: "Starter Growth", price: "$299/month" },
-          { name: "Growth Marketing", price: "$499/month" },
-          { name: "Performance Marketing", price: "$799/month" },
-          { name: "Growth Partner", price: "$1,200/month" },
+          { name: "Starter", price: "$299/month" },
+          { name: "Professional", price: "$499/month" },
+          { name: "Premium", price: "$799/month" },
+          { name: "Custom Social Media Management", price: "Custom Quote" },
         ],
       },
       {
@@ -99,32 +110,41 @@ export const SERVICE_GROUPS: Array<{
     category: "Content & Media",
     services: [
       {
+        // The detailed packages in content-writing.md; the summary table at
+        // the end of that file is not used.
         name: "Content Writing",
         packages: [
-          { name: "Blog Posts & Articles", price: "$100-$300/article" },
-          { name: "Website Copy", price: "$500-$1,500" },
-          { name: "Social Media Content", price: "$200-$500/month" },
-          { name: "Email Marketing", price: "$300-$800/month" },
-          { name: "Content Strategy", price: "$1,000+" },
+          { name: "Essential Content", price: "$99" },
+          { name: "Business Content", price: "$249" },
+          { name: "SEO Content Growth", price: "$399/month" },
+          { name: "Content Pro", price: "$699/month" },
+          { name: "Custom Content Partnership", price: "Custom Quote" },
         ],
       },
       {
+        // The detailed packages in video-production.md, then its monthly
+        // content packages; the summary table at the end is not used.
         name: "Video Editing & Production",
         packages: [
-          { name: "Short-Form Content", price: "$299/video" },
-          { name: "Product Demo", price: "$500/video" },
-          { name: "Promotional Video", price: "$999/video" },
-          { name: "Corporate Video", price: "$1,500/video" },
-          { name: "Full Production Package", price: "$3,000+" },
+          { name: "Basic Editing", price: "$25/video" },
+          { name: "Standard Editing", price: "$99/video" },
+          { name: "Premium Editing", price: "$299/video" },
+          { name: "Custom Video Production", price: "$449+" },
+          { name: "Content Starter", price: "$299/month" },
+          { name: "Content Growth", price: "$599/month" },
+          { name: "Content Pro", price: "$999/month" },
         ],
       },
       {
+        // The detailed packages in media-events.md; the summary table at
+        // the end of that file is not used.
         name: "Media & Events",
         packages: [
-          { name: "Event Photography", price: "$500-$1,500" },
-          { name: "Event Videography", price: "$800-$2,000" },
-          { name: "Full Event Coverage", price: "$1,500-$3,500" },
-          { name: "Live Event Production", price: "$2,000-$5,000+" },
+          { name: "Event Essentials", price: "$250" },
+          { name: "Event Pro", price: "$500" },
+          { name: "Event Premium", price: "$900" },
+          { name: "Full Event Production", price: "$1,500" },
+          { name: "Custom Event Solution", price: "Custom Quote" },
         ],
       },
     ],
@@ -133,19 +153,27 @@ export const SERVICE_GROUPS: Array<{
     category: "Support & Operations",
     services: [
       {
+        // The detailed packages in hosting-domain.md; the summary table at
+        // the end of that file is not used.
         name: "Hosting & Domain",
         packages: [
-          { name: "Basic Hosting", price: "$100/year" },
-          { name: "Professional Hosting", price: "$200/year" },
-          { name: "Enterprise Hosting", price: "$500+/year" },
+          { name: "Starter Hosting", price: "$60/year" },
+          { name: "Business Hosting", price: "$120/year" },
+          { name: "WordPress Hosting", price: "$150/year" },
+          { name: "E-Commerce Hosting", price: "$250/year" },
+          { name: "Custom Hosting Solution", price: "Custom Quote" },
         ],
       },
       {
+        // The detailed packages in website-maintenance.md; the summary
+        // table at the end of that file is not used.
         name: "Website Maintenance",
         packages: [
-          { name: "Basic Maintenance", price: "$100/month" },
-          { name: "Professional Maintenance", price: "$200/month" },
-          { name: "Enterprise Maintenance", price: "$500+/month" },
+          { name: "Essential Maintenance", price: "$100/month" },
+          { name: "Business Maintenance", price: "$200/month" },
+          { name: "Professional Maintenance", price: "$350/month" },
+          { name: "E-Commerce Maintenance", price: "$500/month" },
+          { name: "Custom Website Care", price: "Custom Quote" },
         ],
       },
       // No pricing content exists yet — custom budget only.

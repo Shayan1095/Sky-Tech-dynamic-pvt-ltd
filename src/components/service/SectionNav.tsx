@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { money } from "@/lib/service-pages/quote";
+import { headlineText, recurringExtras } from "@/lib/service-pages/quote";
 import type { ServicePage } from "@/lib/service-pages/types";
 import { Arrow, FRAME } from "./parts";
 import { useServiceQuote } from "./useServiceQuote";
@@ -31,7 +31,7 @@ export default function SectionNav({ page }: { page: ServicePage }) {
   const [current, setCurrent] = useState<string>("");
 
   const items: Item[] = [
-    { id: "what-we-build", label: "What We Build" },
+    { id: "what-we-build", label: page.offerings.heading },
     { id: "packages", label: "Packages" },
     ...(page.addOns ? [{ id: "add-ons", label: "Quote Builder" }] : []),
     ...(page.technology ? [{ id: "technology", label: "Technology" }] : []),
@@ -124,9 +124,11 @@ export default function SectionNav({ page }: { page: ServicePage }) {
               {edited ? "Your Estimate" : page.packages.priceLabel}
             </span>
             <span className="block font-mono text-[14px] text-text">
-              {money(estimate.from)}
-              {estimate.open ? "+" : ""}
-              {estimate.monthly > 0 && <span className="text-text/50"> + {money(estimate.monthly)}/mo</span>}
+              {addOns.length ? headlineText(estimate) : tier.price}
+              {addOns.length > 0 &&
+                recurringExtras(estimate).map((part) => (
+                  <span key={part} className="text-text/50"> + {part}</span>
+                ))}
             </span>
           </p>
           <Link

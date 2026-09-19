@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { SwipeMeter, useSwipeIndex } from "@/components/shared/SwipeRow";
 import { PILLARS, serviceHref } from "@/lib/pillars";
-import { money } from "@/lib/service-pages/quote";
+import { headlineText, recurringExtras } from "@/lib/service-pages/quote";
 import type { ServicePage } from "@/lib/service-pages/types";
 import { Arrow, FRAME, FrameRules, H2, INSET, SectionLabel, Words } from "./parts";
 import { quote } from "./quoteStore";
@@ -76,7 +76,12 @@ export default function ServiceRelated({ page }: { page: ServicePage }) {
                 <Words text={pillar.name} />
               </h2>
               <p className="svr-sub mt-5 max-w-xl text-base leading-relaxed text-text/70 [text-wrap:pretty] sm:text-lg">
-                The rest of your website, from the same team, and added to the same quote.
+                {/* The website pillar's related services are the rest of
+                    the visitor's website; other pillars' are simply more
+                    from the same team. "Added to the same quote" only where
+                    this page sells some of them as add-ons. */}
+                {pillar.index === "01" ? "The rest of your website, from the same team" : "More from the same team"}
+                {page.relatedAddOns && Object.keys(page.relatedAddOns).length > 0 ? ", and added to the same quote." : "."}
               </p>
             </div>
             <Link
@@ -104,13 +109,12 @@ export default function ServiceRelated({ page }: { page: ServicePage }) {
                     {edited ? "Your Estimate" : page.packages.priceLabel}
                   </p>
                   <p aria-live="polite" className="mt-1.5 font-mono text-[1.9rem] leading-none tracking-[-0.02em]">
-                    {money(estimate.from)}
-                    {estimate.open ? "+" : ""}
+                    {chosen.length ? headlineText(estimate) : tier.price}
                   </p>
                   <p className="mt-2 text-[12.5px] leading-relaxed text-white/60">
                     {tier.name}
                     {chosen.length > 0 && ` + ${chosen.length} add-on${chosen.length > 1 ? "s" : ""}`}
-                    {estimate.monthly > 0 && `, + ${money(estimate.monthly)}/month`}
+                    {chosen.length > 0 && recurringExtras(estimate).map((part) => `, + ${part}`)}
                   </p>
                 </div>
 

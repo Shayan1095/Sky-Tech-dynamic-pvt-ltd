@@ -189,7 +189,8 @@ function SpeedProof() {
 /* ---- Data-built proofs --------------------------------------------------- */
 
 function PricingProof({ page }: { page: ServicePage }) {
-  const tiers = page.packages.tiers;
+  /* Priced packages only: a custom-quote plan has no figure to draw. */
+  const tiers = page.packages.tiers.filter((t) => t.price.includes("$"));
   const values = tiers.map((t) => Number(t.price.replace(/[^0-9.]/g, "")) || 0);
   const lo = Math.log(Math.min(...values.filter(Boolean)));
   const hi = Math.log(Math.max(...values));
@@ -210,7 +211,7 @@ function PricingProof({ page }: { page: ServicePage }) {
         <span>{tiers[tiers.length - 1].price}</span>
       </p>
       <p className="mt-1 text-[13px] text-text/60">
-        {tiers.length} packages, every starting price on this page.
+        {page.packages.tiers.length} packages, every starting price on this page.
       </p>
       <div className="mt-2">
         <ProofLink href="#packages">See all packages</ProofLink>

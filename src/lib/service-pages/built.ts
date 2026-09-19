@@ -6,6 +6,18 @@
    every link to it — Services, Home, footer, sitemap — switches over. */
 export const BUILT_SERVICE_PAGES = {
   "Web Development": "web-development",
+  "WordPress Development": "wordpress-development",
+  "UI/UX Design": "ui-ux-design",
+  "Website Maintenance": "website-maintenance",
+  "Hosting & Domain": "hosting-domain",
+  "Digital Marketing": "digital-marketing",
+  "Social Media Management": "social-media-management",
+  "Google Ads": "google-ads",
+  "Meta Ads": "meta-ads",
+  "Content Writing": "content-writing",
+  "Graphic Design": "graphic-design",
+  "Video Editing & Production": "video-production",
+  "Media & Events": "media-events",
 } as const;
 
 export type BuiltServiceSlug = (typeof BUILT_SERVICE_PAGES)[keyof typeof BUILT_SERVICE_PAGES];

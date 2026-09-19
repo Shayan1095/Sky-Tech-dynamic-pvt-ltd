@@ -9,7 +9,8 @@ import { px } from "./parts";
    opposite directions, fading into the navy at both edges.
 
    Rows. A group with four or more technologies gets its own row. Smaller
-   groups share one (Web Development's CMS & E-commerce and Databases), with
+   groups share one (Web Development's CMS & E-commerce and Databases), or
+   join the next large group's row when too few to fill one, with
    a small marker in the track where each group starts — a two-logo row would
    read as a mistake. Groups with no logos at all (Integrations: "APIs",
    "Analytics"… are categories, not brands) are not animated; they sit below
@@ -41,9 +42,12 @@ function buildRows(groups: readonly Group[]) {
 
   for (const g of withLogos) {
     if (g.items.length >= 4) {
-      if (pending.length) rows.push(pending);
+      /* Small groups waiting for company join this row rather than making a
+         short row of their own (WordPress's CMS and E-commerce, one logo
+         each). */
+      if (pending.length && size(pending) >= 4) rows.push(pending);
+      rows.push(pending.length && size(pending) < 4 ? [...pending, g] : [g]);
       pending = [];
-      rows.push([g]);
     } else {
       pending.push(g);
       if (size(pending) >= 4) {
@@ -81,7 +85,46 @@ function Tile({ name }: { name: string }) {
   );
 }
 
+/* Too few logos to fill a moving row (UI/UX Design has one: Figma) — a
+   row would only repeat the same mark. They are shown still instead, each
+   group on its own centred line. */
+const MIN_MOVING = 6;
+
+function StillTiles({ groups }: { groups: readonly Group[] }) {
+  return (
+    <div className="svt space-y-10">
+      {groups.map((g) => {
+        const withLogo = g.items.some((i) => TECH_LOGOS[i]);
+        return (
+          <div key={g.label} className="svt-still">
+            <p className="svt-label">{g.label}</p>
+            <ul className="mt-5 flex flex-wrap justify-center gap-2.5 px-4">
+              {g.items.map((item) =>
+                withLogo ? (
+                  <li key={item} className="flex">
+                    <Tile name={item} />
+                  </li>
+                ) : (
+                  <li key={item} className="svt-pill">
+                    {item}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function TechMarquee({ groups }: { groups: readonly Group[] }) {
+  const logos = groups.reduce((n, g) => n + g.items.filter((i) => TECH_LOGOS[i]).length, 0);
+  if (logos < MIN_MOVING) return <StillTiles groups={groups} />;
+  return <MovingRows groups={groups} />;
+}
+
+function MovingRows({ groups }: { groups: readonly Group[] }) {
   const { rows, still } = buildRows(groups);
   const rootRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);

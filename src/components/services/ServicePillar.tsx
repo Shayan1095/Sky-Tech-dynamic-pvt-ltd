@@ -188,6 +188,13 @@ export default function ServicePillar({
        settles back — a touch smaller, a touch darker — so the stack reads as
        depth rather than as cards colliding.
 
+       The settle is a state, not a scrub. Sticky positioning runs on the
+       compositor, in step with the finger; anything written from script per
+       frame lands a frame later, and on a phone that gap reads as the cards
+       shaking. So script only decides how deep each card sits (0, 1 or 2)
+       as it crosses half-covered, and CSS transitions the scale and shade on
+       the compositor too.
+
        Everything is computed from where each card WOULD be without sticky
        (the list's top plus the heights above it), because a stuck card's own
        position says nothing about scroll progress. Heights are re-read when
@@ -197,13 +204,12 @@ export default function ServicePillar({
       const list = root.querySelector<HTMLElement>(".sp-deck-list");
       if (!list) return;
       const cards = gsap.utils.toArray<HTMLElement>(".sp-card", root);
-      const veils = cards.map((c) => c.querySelector<HTMLElement>(".pillar-veil"));
       const stacking = () => window.matchMedia(STACKING).matches;
 
       let offsets: number[] = [];
       let heights: number[] = [];
       let tops: number[] = [];
-      const shown = cards.map(() => ({ scale: 1, veil: 0 }));
+      const shown = cards.map(() => 0);
       let last = 0;
 
       const measure = () => {
@@ -265,16 +271,12 @@ export default function ServicePillar({
 
         let depth = 0;
         for (let i = cards.length - 1; i >= 0; i -= 1) {
-          depth = cover[i] ? depth + cover[i] : 0;
-          const scale = Math.round((1 - 0.035 * Math.min(depth, 3)) * 1000) / 1000;
-          const veil = Math.round(Math.min(depth, 2) * 0.05 * 1000) / 1000;
-          if (scale !== shown[i].scale) {
-            gsap.set(cards[i], { scale });
-            shown[i].scale = scale;
-          }
-          if (veil !== shown[i].veil && veils[i]) {
-            veils[i]!.style.opacity = String(veil);
-            shown[i].veil = veil;
+          depth = cover[i] >= 0.5 ? depth + 1 : 0;
+          const level = Math.min(depth, 2);
+          if (level !== shown[i]) {
+            shown[i] = level;
+            if (level) cards[i].dataset.depth = String(level);
+            else delete cards[i].dataset.depth;
           }
         }
 
@@ -309,12 +311,11 @@ export default function ServicePillar({
       return () => {
         resize.disconnect();
         cards.forEach((c) => {
-          gsap.set(c, { clearProps: "scale" });
+          delete c.dataset.depth;
           c.style.removeProperty("--stack");
           c.style.marginTop = "";
           c.style.marginBottom = "";
         });
-        veils.forEach((v) => v && (v.style.opacity = ""));
       };
     });
 
@@ -371,13 +372,20 @@ export default function ServicePillar({
       const tl = gsap.timeline({
         scrollTrigger: { trigger: root, start: "top 72%", once: true },
       });
-      tl.fromTo(".sp-panel, .sp-dock", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 1 }, 0)
+      /* Nothing that can stick is moved: a transform still running when the
+         reader scrolls it into its sticky place would drag against it. So
+         below desktop the dock only fades, and the cards arrive by stacking. */
+      const desktop = window.matchMedia(DESKTOP).matches;
+      tl.fromTo(".sp-panel", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 1 }, 0)
+        .fromTo(".sp-dock", { opacity: 0 }, { opacity: 1, duration: 0.8 }, 0.2)
         .fromTo(".sp-line", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.55 }, 0.18)
         .fromTo(".sp-label", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55 }, 0.22)
         .fromTo(".sp-heading", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.85, ease: "power3.inOut" }, 0.28)
         .fromTo(".pillar-motif", { opacity: 0, scale: 0.88, transformOrigin: "78% 82%" }, { opacity: 0.16, scale: 1, duration: 1.4 }, 0.3)
         .fromTo(".sp-intro", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08 }, 0.44)
-        .fromTo(".sp-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 0.48);
+      if (desktop) {
+        tl.fromTo(".sp-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 0.48);
+      }
     });
 
     return () => mm.revert();
