@@ -176,8 +176,6 @@ export const SERVICE_GROUPS: Array<{
           { name: "Custom Website Care", price: "Custom Quote" },
         ],
       },
-      // No pricing content exists yet — custom budget only.
-      { name: "Business Automation", packages: [] },
     ],
   },
 ];

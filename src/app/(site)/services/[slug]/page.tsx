@@ -4,6 +4,9 @@ import { loadMarkdown } from "@/lib/markdown";
 import { SITE_NAME, SITE_URL, pageMetadata } from "@/lib/site";
 import { BUILT_SERVICE_SLUGS } from "@/lib/service-pages/built";
 import { getServicePage } from "@/lib/service-pages";
+import { applyPricesToPage, getPriceMap } from "@/lib/server/prices";
+import { applyTextToPage, getPageText } from "@/lib/server/page-text";
+import { getHiddenSections, type SectionKey } from "@/lib/server/sections";
 import type { ServicePage } from "@/lib/service-pages/types";
 import ServiceHero from "@/components/service/ServiceHero";
 import ServiceProblem from "@/components/service/ServiceProblem";
@@ -90,8 +93,27 @@ function structuredData(page: ServicePage, description: string) {
 
 export default async function ServiceDetailPage(props: PageProps<"/services/[slug]">) {
   const { slug } = await props.params;
-  const page = getServicePage(slug);
-  if (!page) notFound();
+  const base = getServicePage(slug);
+  if (!base) notFound();
+
+  /* Prices saved in the admin panel win over the ones in the content files.
+     Read while the page is being built, not per request, so this page stays
+     statically generated; saving a price revalidates it. The structured data
+     below is built from the same object, so what search engines are told and
+     what the visitor reads can never drift apart. */
+  const [prices, text, hidden] = await Promise.all([
+    getPriceMap(),
+    getPageText(slug),
+    getHiddenSections(slug),
+  ]);
+  const page = applyTextToPage(applyPricesToPage(base, prices), text);
+
+  /* A section hidden on phones is still rendered and still in the HTML — it
+     only gets a class. The wrapper is added only when something is actually
+     hidden, so a page with nothing hidden produces exactly the markup it
+     produced before any of this existed. */
+  const onPhones = (key: SectionKey, node: React.ReactNode) =>
+    hidden.has(key) ? <div className="max-sm:hidden">{node}</div> : node;
 
   const { meta_description } = loadMarkdown(`services/${slug}.md`);
   /* "<" is escaped so no string in the data can close the script element. */
@@ -101,17 +123,17 @@ export default async function ServiceDetailPage(props: PageProps<"/services/[slu
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <ServiceHero page={page} />
-      <ServiceProblem page={page} />
-      <ServiceOfferings page={page} />
+      {onPhones("problem", <ServiceProblem page={page} />)}
+      {onPhones("offerings", <ServiceOfferings page={page} />)}
       <ServicePackages page={page} />
-      <ServiceCapabilities page={page} />
-      <ServiceExtras page={page} />
-      <ServiceTechnology page={page} />
-      <ServiceWhy page={page} />
-      <ServiceProcess page={page} />
-      <ServiceInvestment page={page} />
-      <ServiceFAQ page={page} />
-      <ServiceRelated page={page} />
+      {onPhones("capabilities", <ServiceCapabilities page={page} />)}
+      {onPhones("extras", <ServiceExtras page={page} />)}
+      {onPhones("technology", <ServiceTechnology page={page} />)}
+      {onPhones("why", <ServiceWhy page={page} />)}
+      {onPhones("process", <ServiceProcess page={page} />)}
+      {onPhones("investment", <ServiceInvestment page={page} />)}
+      {onPhones("faq", <ServiceFAQ page={page} />)}
+      {onPhones("related", <ServiceRelated page={page} />)}
       <ServiceClosing page={page} />
       <SectionNav page={page} />
       <MobileQuoteBar page={page} />

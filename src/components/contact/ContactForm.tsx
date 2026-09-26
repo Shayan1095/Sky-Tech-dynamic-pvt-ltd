@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { submitContact } from "@/app/contact/actions";
+import { submitContact } from "@/lib/actions/contact";
 import ServiceSelect from "@/components/contact/ServiceSelect";
 import { combinationLabel, findCombination } from "@/lib/packages";
 import { ADDON_SEPARATOR, readAddOns } from "@/lib/service-pages/addons";
@@ -33,6 +33,9 @@ import {
   type ContactField,
   type ContactResult,
 } from "@/lib/contact";
+import { useSettings } from "@/components/shared/SettingsProvider";
+import { usePrices, withSavedPrices } from "@/components/shared/PricesProvider";
+import { mailHref, telHref } from "@/lib/site-content";
 
 // Runs before paint on the client so the reveal never flashes its end state.
 const useIsomorphicLayoutEffect =
@@ -72,10 +75,13 @@ function useChosenPackage() {
    hand-edited link can't put words in the enquiry. */
 function useRequestedQuote() {
   const query = useSyncExternalStore(noSubscribe, () => window.location.search, () => "");
+  const prices = usePrices();
   const params = new URLSearchParams(query);
   const service = params.get("service") ?? "";
   if (!service || !isService(service)) return null;
-  const tier = packagesFor(service).find((p) => p.name === params.get("budget"));
+  const tier = withSavedPrices(packagesFor(service), service, prices).find(
+    (p) => p.name === params.get("budget")
+  );
   const addOns = readAddOns(service, params.get("addons"));
   if (!tier && !addOns.length) return null;
   return { service, tier, addOns, estimate: estimate(tier?.price, addOns) };
@@ -83,8 +89,6 @@ function useRequestedQuote() {
 
 const ERROR = "text-[#b42318]";
 
-const PHONE = { label: "+92 333 567 3810", href: "tel:+923335673810" };
-const EMAIL = { label: "info@skytech.com.pk", href: "mailto:info@skytech.com.pk" };
 
 const initialState: ContactResult = { status: "idle" };
 
@@ -216,6 +220,12 @@ function SelectionCard({
 }
 
 export default function ContactForm() {
+  /* The editable details, supplied by the site layout. Falls back to the
+     values in site-content.ts when nothing has been saved. */
+  const settings = useSettings();
+  const prices = usePrices();
+  const PHONE = { label: settings.phone, href: telHref(settings.phone) };
+  const EMAIL = { label: settings.email, href: mailHref(settings.email) };
   const sectionRef = useRef<HTMLElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -225,7 +235,9 @@ export default function ContactForm() {
   // Service drives which budget packages are offered.
   const [service, setService] = useState("");
   const [budget, setBudget] = useState("");
-  const packages = packagesFor(service);
+  /* Names and contents come from the content files; the price is whatever
+     was last saved in the admin panel. */
+  const packages = withSavedPrices(packagesFor(service), service, prices);
 
   const [state, formAction, pending] = useActionState(submitContact, initialState);
 

@@ -34,6 +34,22 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  /* Two ways this gets deployed, and only one of them wants "standalone".
+
+     Where the host builds the project itself — Hostinger's Node.js Web App
+     flow, or Vercel — the ordinary build is what runs, started with
+     `next start`. Emitting a standalone bundle there would copy node_modules
+     a second time for nothing, on machines where build time and disk are the
+     scarce things.
+
+     Where the build happens here and only the result is uploaded, standalone
+     is the point: it produces .next/standalone/server.js carrying just the
+     modules the server needs, so nothing has to be installed on the host.
+     That build is asked for explicitly:
+
+         BUILD_STANDALONE=1 npm run build
+  */
+  output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
   poweredByHeader: false,
   // Serve AVIF where the browser supports it (noticeably smaller than WebP
   // for the service and About artwork), WebP otherwise.

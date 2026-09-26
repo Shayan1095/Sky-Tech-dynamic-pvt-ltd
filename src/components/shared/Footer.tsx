@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useLenis } from "lenis/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { servicePagePath } from "@/lib/service-pages/built";
+import { BUILT_SERVICE_PAGES, servicePagePath } from "@/lib/service-pages/built";
+import { useSettings } from "@/components/shared/SettingsProvider";
+import { mailHref, telHref, websiteHref, websiteLabel } from "@/lib/site-content";
 
 // Runs before paint on the client so the reveal never flashes its end state.
 const useIsomorphicLayoutEffect =
@@ -19,9 +21,6 @@ const OPEN = "inset(0 0% 0 0)";
 const FRAME = "mx-4 sm:mx-6 lg:mx-8 xl:mx-auto xl:max-w-6xl";
 const INSET = "px-5 sm:px-8 lg:px-12";
 
-const PHONE = { label: "+92 333 567 3810", href: "tel:+923335673810" };
-const EMAIL = { label: "info@skytech.com.pk", href: "mailto:info@skytech.com.pk" };
-const WEBSITE = { label: "skytech.com.pk", href: "https://skytech.com.pk" };
 
 const PAGES = [
   { href: "/", label: "Home" },
@@ -30,31 +29,28 @@ const PAGES = [
   { href: "/contact", label: "Contact" },
 ];
 
-// Each links to its own page once built, and to /services until then.
-const SERVICES = [
-  "Web Development",
-  "WordPress Development",
-  "Digital Marketing",
-  "Social Media Management",
-  "Video Editing & Production",
-  "Business Automation",
-];
+/* Every service that has a page, taken from the registry the links resolve
+   against rather than typed out again here. A list maintained by hand drifts:
+   this one had five entries and a sixth for a service that no longer exists,
+   while eight real services were missing from the footer entirely. */
+const SERVICES = Object.keys(BUILT_SERVICE_PAGES);
 
-// Real profile URLs to be supplied; kept as placeholders until then.
+/* The icons. Which of them appear depends on the profile URLs saved in the
+   admin panel: one without a URL is left out rather than linked to nowhere. */
 const SOCIALS = [
   {
     label: "Facebook",
-    href: "#",
+    key: "facebook" as const,
     path: "M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z",
   },
   {
     label: "Instagram",
-    href: "#",
+    key: "instagram" as const,
     path: "M12 2.2c2.67 0 2.99.01 4.04.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.76 1.15.5.5.9 1.1 1.15 1.76.25.64.42 1.37.47 2.43.05 1.06.06 1.42.06 4.13s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.15 1.76 4.9 4.9 0 0 1-1.76 1.15c-.64.25-1.37.42-2.43.47-1.06.05-1.42.06-4.12.06s-3.06-.01-4.13-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.76-1.15 4.9 4.9 0 0 1-1.15-1.76c-.25-.64-.42-1.37-.47-2.43C2.21 15.06 2.2 14.7 2.2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.15-1.76A4.9 4.9 0 0 1 5.64.54c.64-.25 1.37-.42 2.43-.47C9.14.02 9.5.01 12 .01Zm0 1.8c-2.67 0-2.99.01-4.04.06-.87.04-1.34.18-1.65.3-.42.16-.71.35-1.02.66-.31.31-.5.6-.66 1.02-.12.31-.26.78-.3 1.65-.05 1.03-.06 1.35-.06 3.9s.01 2.87.06 3.9c.04.87.18 1.34.3 1.65.16.42.35.71.66 1.02.31.31.6.5 1.02.66.31.12.78.26 1.65.3 1.05.05 1.37.06 4.04.06s2.99-.01 4.04-.06c.87-.04 1.34-.18 1.65-.3.42-.16.71-.35 1.02-.66.31-.31.5-.6.66-1.02.12-.31.26-.78.3-1.65.05-1.03.06-1.35.06-3.9s-.01-2.87-.06-3.9c-.04-.87-.18-1.34-.3-1.65a2.7 2.7 0 0 0-.66-1.02 2.7 2.7 0 0 0-1.02-.66c-.31-.12-.78-.26-1.65-.3C14.87 4.01 14.55 4 12 4Zm0 3.05a5.35 5.35 0 1 1 0 10.7 5.35 5.35 0 0 1 0-10.7Zm0 1.8a3.55 3.55 0 1 0 0 7.1 3.55 3.55 0 0 0 0-7.1Zm5.56-1.98a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Z",
   },
   {
     label: "LinkedIn",
-    href: "#",
+    key: "linkedin" as const,
     path: "M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45Z",
   },
 ];
@@ -131,6 +127,18 @@ const heading =
   "font-mono text-[11px] uppercase tracking-[0.2em] text-white/60";
 
 export default function Footer() {
+  /* The editable details, supplied by the site layout. Falls back to the
+     values in site-content.ts when nothing has been saved. */
+  const settings = useSettings();
+  const PHONE = { label: settings.phone, href: telHref(settings.phone) };
+  const EMAIL = { label: settings.email, href: mailHref(settings.email) };
+  const WEBSITE = { label: websiteLabel(settings.website), href: websiteHref(settings.website) };
+
+  /* Only profiles with a real URL are shown. An icon linking to "#" looks
+     live and goes nowhere, which is worse than not being there. */
+  const shownSocials = SOCIALS.map((s) => ({ ...s, href: settings[s.key] })).filter(
+    (s) => s.href.length > 0
+  );
   const year = new Date().getFullYear();
   const rootRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
@@ -267,7 +275,7 @@ export default function Footer() {
       {/* ------------------------------------------------------- Columns */}
       <div className={`relative ${FRAME}`}>
         <div
-          className={`grid gap-12 py-14 sm:grid-cols-2 sm:py-16 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 ${INSET}`}
+          className={`grid gap-12 py-14 sm:grid-cols-2 sm:py-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.7fr)_minmax(0,1.75fr)_minmax(0,1fr)] lg:gap-10 ${INSET}`}
         >
           <div className="ft-col">
             <p className="font-display text-[1.6rem] font-semibold tracking-[-0.02em]">
@@ -306,7 +314,7 @@ export default function Footer() {
 
           <nav aria-label="Footer services" className="ft-col">
             <p className={heading}>Services</p>
-            <ul className="mt-5 space-y-3 text-[0.95rem]">
+            <ul className="mt-5 grid gap-x-6 gap-y-3 text-[0.95rem] sm:grid-cols-2">
               {SERVICES.map((s) => (
                 <li key={s}>
                   <SweepLink href={servicePagePath(s) ?? "/services"}>{s}</SweepLink>
@@ -347,10 +355,12 @@ export default function Footer() {
 
           <div className="flex items-center gap-6">
             <ul className="flex items-center gap-2">
-              {SOCIALS.map((s) => (
+              {shownSocials.map((s) => (
                 <li key={s.label}>
                   <a
                     href={s.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
                     aria-label={s.label}
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 transition-[color,border-color,background-color] duration-300 hover:border-cta hover:bg-cta hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta"
                   >

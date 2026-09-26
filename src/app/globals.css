@@ -7,6 +7,10 @@
   --color-text: #121212;
   --color-bg: #ffffff;
   --color-surface: #f3f4f6;
+  /* Admin panel surfaces. Tokens rather than literal whites, so a dark theme
+     is a redefinition rather than a second class on every element. */
+  --color-card: #ffffff;
+  --color-panel: #fafbfc;
   --color-navy: #0b1f35;
   --font-sans: var(--font-body);
   --font-display: var(--font-heading);
@@ -2348,5 +2352,128 @@ html[data-sky-seen] .sky-preloader {
 @media (max-width: 1023px) {
   .svp-cells.lg\:grid-cols-3 .svp-cell:last-child:nth-child(odd) {
     grid-column: span 2;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Admin panel: toasts.
+
+   Entry only. A toast is removed from the DOM when it is dismissed, so there
+   is nothing to animate out — and the entry is what carries the meaning
+   ("something just happened"), which is where the motion belongs.
+
+   ease-out, because the movement has to be visible immediately: this appears
+   while someone is already looking somewhere else on the page.
+   ------------------------------------------------------------------------ */
+.toast {
+  animation: toast-in 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: toast-fade 160ms ease;
+  }
+
+  @keyframes toast-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Admin panel: loading placeholders. A slow pulse, paused for anyone who has
+   asked for less motion. */
+.skeleton {
+  background-color: color-mix(in oklab, var(--color-text) 7%, transparent);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Admin panel: dark theme.
+
+   The tokens are redefined rather than every element gaining a second class.
+   `text-text/45`, `border-text/[0.09]` and the rest keep working because what
+   changed underneath them is the colour they are a percentage of.
+
+   The attribute sits on the panel's own wrapper, written by the server from
+   a cookie. That means no flash, no inline script, and no way for a dark
+   theme to follow someone out onto the public site.
+   ------------------------------------------------------------------------ */
+.adm[data-theme="dark"] {
+  --color-text: #e6e9ee;
+  --color-card: #141c26;
+  --color-panel: #0e151d;
+  --color-primary: #4aa8e8;
+  --color-accent: #17242f;
+}
+
+.adm[data-theme="dark"] input,
+.adm[data-theme="dark"] textarea,
+.adm[data-theme="dark"] select {
+  color-scheme: dark;
+}
+
+/* Admin panel: the enquiry drawer. Enters from the edge it lives on, so the
+   direction carries meaning. Nothing animates out — the route change removes
+   it, and an exit animation would delay the list coming back. */
+.drawer-panel {
+  animation: drawer-in 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.drawer-veil {
+  animation: veil-in 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes veil-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-panel {
+    animation: veil-in 160ms ease;
   }
 }

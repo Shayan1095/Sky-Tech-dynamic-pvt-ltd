@@ -6,6 +6,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLenis } from "lenis/react";
 import { gsap } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/components/shared/SettingsProvider";
+import { mailHref, telHref } from "@/lib/site-content";
 
 // Runs before paint on the client so the menu never flashes its end state.
 const useIsomorphicLayoutEffect =
@@ -18,8 +20,6 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-const PHONE = { label: "+92 333 567 3810", href: "tel:+923335673810" };
-const EMAIL = { label: "info@skytech.com.pk", href: "mailto:info@skytech.com.pk" };
 const CTA = "Start a Project";
 
 const Arrow = ({ className = "" }: { className?: string }) => (
@@ -39,6 +39,11 @@ function Cross({ className }: { className: string }) {
 }
 
 export default function Navbar() {
+  /* The editable details, supplied by the site layout. Falls back to the
+     values in site-content.ts when nothing has been saved. */
+  const settings = useSettings();
+  const PHONE = { label: settings.phone, href: telHref(settings.phone) };
+  const EMAIL = { label: settings.email, href: mailHref(settings.email) };
   const pathname = usePathname();
   const lenis = useLenis();
   const [open, setOpen] = useState(false);

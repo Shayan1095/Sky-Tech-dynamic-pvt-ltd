@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Manrope, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
-import Preloader from "@/components/shared/Preloader";
-import { SEEN_SCRIPT } from "@/lib/preloader";
 import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, SITE_NAME, SITE_URL } from "@/lib/site";
-import Navbar from "@/components/shared/Navbar";
-import Footer from "@/components/shared/Footer";
-import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 import "./globals.css";
+
+/* The root layout holds only what every route needs: the document, the fonts
+   and the site-wide metadata defaults. The public site's chrome — preloader,
+   navigation, smooth scrolling, footer — lives in (site)/layout.tsx, because
+   the admin panel shares the fonts and nothing else. Route groups do not
+   appear in URLs, so every public address is unchanged. */
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-heading",
@@ -49,23 +49,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${spaceGrotesk.variable} ${manrope.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body
-        className="flex min-h-full flex-col bg-bg text-text"
-        suppressHydrationWarning
-      >
-        {/* Before hydration: flags a repeat visit so the preloader is hidden
-            from the first paint. */}
-        <Script
-          id="sky-seen"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: SEEN_SCRIPT }}
-        />
-        <Preloader />
-        <SmoothScrollProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </SmoothScrollProvider>
+      <body className="flex min-h-full flex-col bg-bg text-text" suppressHydrationWarning>
+        {children}
       </body>
     </html>
   );

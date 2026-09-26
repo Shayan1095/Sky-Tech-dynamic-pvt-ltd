@@ -9,9 +9,20 @@ import { SERVICE_META } from "@/lib/services";
 
 const CLOSED = "inset(0 100% 0 0)";
 const OPEN = "inset(0 0% 0 0)";
-const PIN_LENGTH = 2200;
-// Shorter on phones: the same five handovers over less travel for a thumb.
-const PIN_LENGTH_COMPACT = 1750;
+/* How far the page scrolls while this section is held in place.
+
+   Five cards means four handovers, so this figure divided by four is what a
+   reader spends getting from one service to the next. At 2200 across six
+   cards that was 440px each — around half a screen per card, long enough
+   that the section read as stuck rather than as a deliberate hold. 1280
+   keeps it at 320px per handover: an unhurried read of each card, without
+   the stretch where nothing appears to be happening.
+
+   The whole hold is what a reader feels, not the per-card figure, so this is
+   the number to adjust if it still drags — not the scrub. */
+const PIN_LENGTH = 1280;
+// Shorter on phones: the same four handovers over less travel for a thumb.
+const PIN_LENGTH_COMPACT = 1080;
 
 interface Service {
   index: string;
@@ -23,8 +34,8 @@ interface Service {
      not uniform — video production is 2:1 while the rest are 16:9 — and a
      shared size would stretch it. */
   image: { src: string; width: number; height: number };
-  /* Supporting-card artwork. Supplied transparent at 1536x1024; Business
-     Automation has none because the stack already ends on it.
+  /* Supporting-card artwork. Supplied transparent at 1536x1024. A service
+     without it simply does not appear in the supporting grid.
 
      Each file frames its subject differently inside the canvas — content
      occupies 65-85% of the width with margins varying from 3% to 29% — so
@@ -129,22 +140,11 @@ const SERVICES: Service[] = [
       </svg>
     ),
   },
-  {
-    index: "06",
-    image: { src: "/services/business-automation.png", width: 1672, height: 941 },
-    title: "Business Automation",
-    description: "Custom workflows and integrations that eliminate manual work.",
-    href: serviceLink("Business Automation"),
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" {...stroke}>
-        <rect x="2.5" y="3.2" width="7.6" height="5.8" rx="1.8" />
-        <rect x="13.9" y="15" width="7.6" height="5.8" rx="1.8" />
-        <path d="M10.1 6.1h5a2.6 2.6 0 0 1 2.6 2.6v4.2" />
-        <path d="M15.5 12.6l2.2 2.4 2.2-2.4" />
-      </svg>
-    ),
-  },
 ];
+
+/* The supporting grid below the pinned stack shows every service that has
+   card artwork prepared for it. */
+const SUPPORTING = SERVICES.filter((service) => service.card && service.art);
 
 const Arrow = ({ className = "" }: { className?: string }) => (
   <svg
@@ -184,9 +184,17 @@ export default function ServicesSection() {
       ).matches;
 
       if (reduced) {
-        // Only the first service is shown; 02-06 remain reachable through the
-        // supporting cards below.
+        /* Only the first service is shown; the rest remain reachable through
+           the supporting cards below. They are hidden from the pointer, from
+           screen readers and from the tab order together — a card nobody can
+           see should not be the thing that answers a click or a Tab press. */
         gsap.set(cards.slice(1), { opacity: 0, pointerEvents: "none" });
+        cards.slice(1).forEach((card) => {
+          card.setAttribute("aria-hidden", "true");
+          card
+            .querySelectorAll<HTMLElement>("a, button")
+            .forEach((el) => el.setAttribute("tabindex", "-1"));
+        });
         return;
       }
 
@@ -236,6 +244,25 @@ export default function ServicesSection() {
         current = i;
         dots.forEach((d, k) => d.classList.toggle("is-current", k === i));
         ambient.forEach((a, k) => (k === i ? a.play() : a.pause()));
+
+        /* The cards sit on top of one another — absolutely on desktop, sharing
+           one grid cell below it — and the last one has the highest z-index.
+           Fading a card out sets its opacity to zero but leaves it in front of
+           everything, still collecting clicks, so "Explore Web Development"
+           was being intercepted by the invisible card above it.
+
+           Only the card actually on show accepts the pointer. Fading cards are
+           also hidden from screen readers and taken out of the tab order, so
+           the section offers one reachable link at a time rather than five
+           stacked on top of each other. */
+        cards.forEach((card, k) => {
+          const showing = k === i;
+          card.style.pointerEvents = showing ? "auto" : "none";
+          card.setAttribute("aria-hidden", showing ? "false" : "true");
+          card
+            .querySelectorAll<HTMLElement>("a, button")
+            .forEach((el) => el.setAttribute("tabindex", showing ? "0" : "-1"));
+        });
       };
 
       // Each unit of the timeline is one service. The handover happens in the
@@ -601,10 +628,10 @@ export default function ServicesSection() {
           </div>
         </div>
 
-        {/* Supporting services — the five the stack does not end on, with the
-            CTA closing the grid. Business Automation is omitted because the
-            pinned stack finishes on it. Palette and ground are scoped to this
-            band via .svc-cards. */}
+        {/* Supporting services, with the CTA closing the grid. Membership is
+            "has supporting artwork" rather than a count, so removing or adding
+            a service cannot silently leave a card with an empty frame.
+            Palette and ground are scoped to this band via .svc-cards. */}
         <div className="svc-cards relative mt-10 py-12 sm:mt-20 sm:py-16">
           <span
             aria-hidden="true"
@@ -612,7 +639,7 @@ export default function ServicesSection() {
           />
 
           <div className="svc-support-grid grid grid-cols-1 gap-5 sm:auto-rows-fr sm:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.slice(0, 5).map((service) => (
+            {SUPPORTING.map((service) => (
               <Link
                 key={service.index}
                 href={service.href}
@@ -620,7 +647,7 @@ export default function ServicesSection() {
               >
                 {/* Artwork column. Every file frames its subject differently
                     inside the canvas, so each is scaled and offset by its own
-                    measured content box — all six end up the same content
+                    measured content box — all of them end up the same content
                     width, flush right, vertically centred. Nothing cropped. */}
                 {/* Phones: a full-width artwork band on top of the card. The
                     tallest artwork is 0.859x its frame width, so a 172px frame

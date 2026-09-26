@@ -320,13 +320,18 @@ export default function WhyClientsChooseUs() {
             {REASONS.map((reason, i) => (
               <li key={reason.title} className={`why-card ${reason.span}`}>
                 <div className="group relative flex h-full min-h-[300px] flex-col rounded-[24px] border border-white/10 bg-white/[0.035] p-7 transition-[transform,border-color,background-color] duration-500 ease-out hover:-translate-y-1 hover:border-cta/35 hover:bg-white/[0.055] sm:p-8">
-                  <div className="flex items-start justify-between gap-6">
-                    <span className="font-mono text-[12px] tracking-[0.16em] text-cta">
+                  {/* The schematic must be allowed to shrink. As a flex item
+                      it defaults to min-width:auto, so w-full made it claim
+                      the whole row — the number's width and the gap then
+                      pushed it past the card's edge on a phone. flex-1 with
+                      min-w-0 lets it take what is left and no more. */}
+                  <div className="flex items-start justify-between gap-4 sm:gap-6">
+                    <span className="shrink-0 font-mono text-[12px] tracking-[0.16em] text-cta">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <svg
                       viewBox="0 0 260 120"
-                      className="h-auto w-full max-w-[260px] overflow-visible"
+                      className="h-auto min-w-0 max-w-[260px] flex-1 overflow-visible"
                       fill="none"
                       aria-hidden="true"
                     >

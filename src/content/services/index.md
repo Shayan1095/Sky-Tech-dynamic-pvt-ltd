@@ -82,10 +82,6 @@ Reliable domain registration and hosting solutions with website setup, SSL, DNS 
 Ongoing website maintenance services covering updates, backups, security, performance, bug fixes and technical support.
 → Explore Website Maintenance
 
-**Business Automation**
-Custom workflows and system integrations that eliminate manual work and save your team hours every week.
-→ Explore Business Automation
-
 ---
 
 ## How We Work — A Process Built for Clarity

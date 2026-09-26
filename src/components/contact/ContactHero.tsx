@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useSettings } from "@/components/shared/SettingsProvider";
+import {
+  mailHref,
+  telHref,
+  websiteHref,
+  websiteLabel,
+  type SiteSettings,
+} from "@/lib/site-content";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { READY_EVENT } from "@/components/shared/Preloader";
 
@@ -13,20 +21,21 @@ const useIsomorphicLayoutEffect =
 const FRAME = "mx-4 sm:mx-6 lg:mx-8 xl:mx-auto xl:max-w-6xl";
 const INSET = "px-5 sm:px-8 lg:px-12";
 
-/* Direct contact details, as in src/content/contact.md. */
-const CHANNELS = [
+/* Direct contact details. The values come from the admin panel, falling back
+   to src/content/contact.md; only the icons are fixed here. */
+const channelsFor = (settings: SiteSettings) => [
   {
     term: "Phone",
-    label: "+92 333 567 3810",
-    href: "tel:+923335673810",
-    copy: "+92 333 567 3810",
+    label: settings.phone,
+    href: telHref(settings.phone),
+    copy: settings.phone,
     icon: <path d="M5.6 2.5l1.3 2.9-1.4 1.1a8 8 0 0 0 4 4l1.1-1.4 2.9 1.3-.5 2.6c-5.8.4-10.4-4.2-10-10z" />,
   },
   {
     term: "Email",
-    label: "info@skytech.com.pk",
-    href: "mailto:info@skytech.com.pk",
-    copy: "info@skytech.com.pk",
+    label: settings.email,
+    href: mailHref(settings.email),
+    copy: settings.email,
     icon: (
       <>
         <rect x="2" y="3.5" width="12" height="9" rx="2" />
@@ -36,8 +45,8 @@ const CHANNELS = [
   },
   {
     term: "Website",
-    label: "skytech.com.pk",
-    href: "https://skytech.com.pk",
+    label: websiteLabel(settings.website),
+    href: websiteHref(settings.website),
     copy: null,
     icon: (
       <>
@@ -46,7 +55,7 @@ const CHANNELS = [
       </>
     ),
   },
-] as const;
+];
 
 function Cross({ side }: { side: "left" | "right" }) {
   return (
@@ -129,6 +138,8 @@ function CopyButton({ value, term }: { value: string; term: string }) {
 }
 
 export default function ContactHero() {
+  const settings = useSettings();
+  const CHANNELS = channelsFor(settings);
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 

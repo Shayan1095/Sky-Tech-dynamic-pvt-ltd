@@ -27,9 +27,4 @@ export const SERVICE_META: Record<string, { category: string; description: strin
     description:
       "Professional video production, reels, corporate videos and social-first visual content.",
   },
-  "Business Automation": {
-    category: "Support & Operations",
-    description:
-      "Custom workflows and system integrations that eliminate manual work and save your team hours every week.",
-  },
 };
