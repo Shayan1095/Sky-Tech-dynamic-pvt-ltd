@@ -47,6 +47,7 @@ try {
     "password_resets",
     "rate_limits",
     "section_visibility",
+    "service_offers",
     "service_prices",
     "site_settings",
     "trusted_devices",

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import BrandMarquee from "./BrandMarquee";
+import { BRANDS } from "@/lib/brands";
 
 const CLOSED = "inset(0 100% 0 0)";
 const OPEN = "inset(0 0% 0 0)";
@@ -10,13 +12,24 @@ const OPEN = "inset(0 0% 0 0)";
 const FRAME = "mx-4 sm:mx-6 lg:mx-8 xl:mx-auto xl:max-w-6xl";
 const INSET = "px-5 sm:px-8 lg:px-12";
 
-type VisualKind = "sites" | "network" | "years";
-
-const STATS: Array<{ value: number; label: string; visual: VisualKind }> = [
-  { value: 50, label: "Websites Delivered", visual: "sites" },
-  { value: 150, label: "Businesses Served", visual: "network" },
-  { value: 5, label: "Years of Experience", visual: "years" },
+const STATS: Array<{ value: number; label: string }> = [
+  { value: 50, label: "Websites Delivered" },
+  { value: 150, label: "Businesses Served" },
+  { value: 5, label: "Years of Experience" },
 ];
+
+/* The three figures used to be three full-width rows, each with a schematic
+   drawn to its own count — fifty browser tiles, a hundred and fifty linked
+   points, five years on a timeline. It was a good drawing and it was the
+   wrong shape for this position: the section ran the better part of a screen
+   and a half between the hero and the work, so the proof of the claim sat a
+   long way from the claim.
+
+   The figures now read across in one strip, and the space that bought goes
+   to the brands themselves, which are the stronger evidence anyway: a name
+   someone recognises does more than a count of tiles.
+
+   The odometer stays. It is the part that earns the scroll. */
 
 // An odometer strip: full 0-9 cycles, then a partial run ending on the target
 // digit. Scrubbing the strip's yPercent rolls the digit into place.
@@ -29,244 +42,98 @@ function buildStrip(target: number, cycles: number) {
   return seq;
 }
 
-/* ------------------------------------------------------------- Visuals --
-   One schematic per stat, drawn to the stat's real count. Each has a faint
-   base layer and an identical cyan layer revealed through a single clip
-   shape, so the scroll scrub animates one attribute per visual rather than
-   dozens of elements. */
-const VB = { w: 220, h: 90 };
-const CYAN = "#00c2ff";
-const BASE = "rgb(255 255 255 / 0.22)";
-
-// 50 browser-window tiles, 10 x 5.
-const TILES = Array.from({ length: 50 }, (_, i) => ({
-  x: (i % 10) * 22,
-  y: Math.floor(i / 10) * 18,
-}));
-
-// 150 points, deterministic (seeded) so server and client render the same.
-const POINTS = (() => {
-  let seed = 7;
-  const rand = () => {
-    seed = (seed * 16807) % 2147483647;
-    return seed / 2147483647;
-  };
-  return Array.from({ length: 150 }, (_, i) => {
-    const col = i % 15;
-    const row = Math.floor(i / 15);
-    return {
-      x: 7 + col * 14.6 + (rand() - 0.5) * 8,
-      y: 6 + row * 8.7 + (rand() - 0.5) * 5,
-    };
-  });
-})();
-// A light web of links between near neighbours.
-const LINKS = POINTS.flatMap((p, i) =>
-  POINTS.slice(i + 1, i + 17)
-    .filter((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13)
-    .slice(0, 1)
-    .map((q) => `M${p.x.toFixed(1)} ${p.y.toFixed(1)}L${q.x.toFixed(1)} ${q.y.toFixed(1)}`)
-).join("");
-
-const YEARS_X = [14, 62, 110, 158, 206];
-
-/* The schematics are several hundred static SVG shapes (300 of them in the
-   network alone). They never change after render, so they are emitted as
-   markup rather than React elements: the drawing is identical, but React
-   doesn't have to walk every shape while the page starts up. Only the
-   .tb-reveal clip shape is animated, and GSAP finds it in the DOM as before. */
-function layerMarkup(kind: VisualKind, lit: boolean) {
-  const stroke = lit ? CYAN : BASE;
-
-  if (kind === "sites") {
-    return TILES.map(
-      (t) =>
-        `<g><rect x="${t.x + 1}" y="${t.y + 1}" width="18" height="14" rx="2.5" fill="${lit ? "rgb(0 194 255 / 0.18)" : "none"}" stroke="${stroke}" stroke-width="1"></rect>` +
-        `<line x1="${t.x + 1}" y1="${t.y + 5}" x2="${t.x + 19}" y2="${t.y + 5}" stroke="${stroke}" stroke-width="1"></line></g>`
-    ).join("");
-  }
-
-  if (kind === "network") {
-    return (
-      `<path d="${LINKS}" stroke="${lit ? "rgb(0 194 255 / 0.5)" : "rgb(255 255 255 / 0.1)"}" stroke-width="0.8"></path>` +
-      POINTS.map(
-        (p) => `<circle cx="${p.x}" cy="${p.y}" r="${lit ? 1.9 : 1.5}" fill="${stroke}"></circle>`
-      ).join("")
-    );
-  }
-
-  return (
-    `<line x1="14" y1="45" x2="206" y2="45" stroke="${stroke}" stroke-width="${lit ? 2 : 1.5}" stroke-linecap="round"></line>` +
-    YEARS_X.map(
-      (x) =>
-        `<g><line x1="${x}" y1="26" x2="${x}" y2="34" stroke="${stroke}" stroke-linecap="round"></line>` +
-        `<circle cx="${x}" cy="45" r="${lit ? 6 : 5.5}" fill="#0b1f35" stroke="${stroke}" stroke-width="1.5"></circle>` +
-        (lit ? `<circle cx="${x}" cy="45" r="2.5" fill="${CYAN}"></circle>` : "") +
-        `</g>`
-    ).join("")
-  );
-}
-
-function visualMarkup(kind: VisualKind, row: number) {
-  // Each stat appears once on the page, so its row makes the id unique.
-  const clipId = `tb-clip-${row}`;
-  const reveal =
-    kind === "network"
-      ? // Businesses light up outward from the centre.
-        `<circle class="tb-reveal" data-row="${row}" data-kind="radius" cx="${VB.w / 2}" cy="${VB.h / 2}" r="125"></circle>`
-      : // Sites and years fill left to right.
-        `<rect class="tb-reveal" data-row="${row}" data-kind="width" x="-4" y="-4" width="${VB.w + 8}" height="${VB.h + 8}"></rect>`;
-
-  return (
-    `<defs><clipPath id="${clipId}">${reveal}</clipPath></defs>` +
-    layerMarkup(kind, false) +
-    `<g clip-path="url(#${clipId})">${layerMarkup(kind, true)}</g>`
-  );
-}
-
-function StatVisual({ kind, row }: { kind: VisualKind; row: number }) {
-  return (
-    <svg
-      viewBox={`0 0 ${VB.w} ${VB.h}`}
-      className="h-auto w-[180px] overflow-visible sm:w-[220px]"
-      fill="none"
-      aria-hidden="true"
-      dangerouslySetInnerHTML={{ __html: visualMarkup(kind, row) }}
-    />
-  );
-}
-
 export default function TrustBar() {
   const sectionRef = useRef<HTMLElement>(null);
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const leaderRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
 
-    const rows = rowRefs.current.filter(Boolean) as HTMLDivElement[];
-    const leaders = leaderRefs.current.filter(Boolean) as HTMLSpanElement[];
-    const strips = Array.from(
-      section.querySelectorAll<HTMLSpanElement>("[data-total]")
-    );
-    const reveals = Array.from(
-      section.querySelectorAll<SVGElement>(".tb-reveal")
-    );
-    const pluses = Array.from(
-      section.querySelectorAll<HTMLSpanElement>(".tb-plus")
-    );
+    const cells = Array.from(section.querySelectorAll<HTMLElement>(".tb-cell"));
+    const strips = Array.from(section.querySelectorAll<HTMLSpanElement>("[data-total]"));
+    const pluses = Array.from(section.querySelectorAll<HTMLSpanElement>(".tb-plus"));
 
     const restTarget = (strip: HTMLSpanElement) => {
       const total = Number(strip.dataset.total ?? 1);
       return -((total - 1) / total) * 100;
     };
 
-    // Reveal shapes start closed: a zero-width strip, or a zero-radius circle.
-    const closedAttr = (el: SVGElement): gsap.AttrVars =>
-      el.dataset.kind === "radius" ? { r: 0 } : { width: 0 };
-    const openAttr = (el: SVGElement): gsap.AttrVars =>
-      el.dataset.kind === "radius" ? { r: 125 } : { width: VB.w + 8 };
-
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      gsap.set(rows, { opacity: 1, y: 0 });
-      gsap.set(leaders, { scaleX: 1 });
+      gsap.set(cells, { opacity: 1, y: 0 });
       strips.forEach((s) => gsap.set(s, { yPercent: restTarget(s) }));
-      reveals.forEach((r) => gsap.set(r, { attr: openAttr(r) }));
       return;
     }
 
-    gsap.set(rows, { opacity: 0, y: 8 });
-    gsap.set(leaders, { scaleX: 0, transformOrigin: "left center" });
+    gsap.set(cells, { opacity: 0, y: 10 });
     gsap.set(strips, { yPercent: 0 });
-    reveals.forEach((r) => gsap.set(r, { attr: closedAttr(r) }));
 
     // Same header choreography as the Approach section: the mark scales in,
     // the heading wipes left to right a line at a time, the lede follows.
     const q = gsap.utils.selector(section);
     const header = gsap.timeline({
       scrollTrigger: { trigger: section, start: "top 78%", once: true },
-      onComplete: () =>
-        gsap.set(q(".tb-heading-line"), { clearProps: "willChange" }),
+      onComplete: () => gsap.set(q(".tb-heading-line"), { clearProps: "willChange" }),
     });
 
     header
-      .fromTo(
-        q(".tb-mark"),
-        { scale: 0, transformOrigin: "left center" },
-        { scale: 1, duration: 0.5 },
-        0
-      )
+      .fromTo(q(".tb-mark"), { scale: 0, transformOrigin: "left center" }, { scale: 1, duration: 0.5 }, 0)
       .fromTo(
         q(".tb-heading-line"),
         { clipPath: CLOSED, willChange: "clip-path" },
         { clipPath: OPEN, duration: 0.65, stagger: 0.09 },
         0.08
       )
-      .fromTo(
-        q(".tb-lede"),
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        0.44
-      );
+      .fromTo(q(".tb-lede"), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6 }, 0.44);
 
+    /* The strip is one line now, so the figures roll together rather than one
+       row at a time — a short scrub that finishes well before the wall below
+       comes into view. */
     const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top 78%",
-        end: "top 28%",
-        scrub: 0.6,
-      },
+      scrollTrigger: { trigger: section, start: "top 70%", end: "top 35%", scrub: 0.6 },
     });
 
-    rows.forEach((row, i) => {
-      const at = i * 0.15;
-      tl.to(row, { opacity: 1, y: 0, duration: 0.3, ease: "none" }, at);
-      tl.to(leaders[i], { scaleX: 1, duration: 0.5, ease: "none" }, at + 0.05);
+    cells.forEach((cell, i) => {
+      const at = i * 0.12;
+      tl.to(cell, { opacity: 1, y: 0, duration: 0.3, ease: "none" }, at);
 
       // Every digit rolls, units digit settling last — the number counts up
       // rather than sitting there with one spinning digit.
-      const rowStrips = strips.filter((s) => s.dataset.row === String(i));
-      rowStrips.forEach((strip, d) => {
-        tl.to(
-          strip,
-          {
-            yPercent: restTarget(strip),
-            duration: 0.7 + d * 0.06,
-            ease: "none",
-          },
-          at
-        );
+      const cellStrips = strips.filter((s) => s.dataset.row === String(i));
+      cellStrips.forEach((strip, d) => {
+        tl.to(strip, { yPercent: restTarget(strip), duration: 0.7 + d * 0.06, ease: "none" }, at);
       });
 
-      // The stat's schematic fills over exactly the span its number rolls,
-      // so the last tile, business or year lights as the final digit lands.
-      // Ending inside the existing span keeps the timeline's length — and so
-      // every existing animation's scroll position — unchanged.
-      const span = 0.7 + Math.max(0, rowStrips.length - 1) * 0.06;
-      const reveal = reveals.find((r) => r.dataset.row === String(i));
-      if (reveal) {
-        tl.to(reveal, { attr: openAttr(reveal), duration: span, ease: "none" }, at);
-      }
+      const span = 0.7 + Math.max(0, cellStrips.length - 1) * 0.06;
       if (pluses[i]) {
         tl.fromTo(
           pluses[i],
           { textShadow: "0 0 0px rgba(0, 194, 255, 0)" },
-          {
-            textShadow: "0 0 22px rgba(0, 194, 255, 0.55)",
-            duration: 0.12,
-            ease: "none",
-          },
+          { textShadow: "0 0 22px rgba(0, 194, 255, 0.55)", duration: 0.12, ease: "none" },
           at + span - 0.12
         );
       }
     });
+
+    /* The wall arrives once, gently. Its rows move on their own from there. */
+    const wall = gsap.fromTo(
+      section.querySelector(".tb-wall"),
+      { opacity: 0, y: 16 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: { trigger: section.querySelector(".tb-wall"), start: "top 90%", once: true },
+      }
+    );
 
     return () => {
       header.scrollTrigger?.kill();
       header.kill();
       tl.scrollTrigger?.kill();
       tl.kill();
+      wall.scrollTrigger?.kill();
+      wall.kill();
     };
   }, []);
 
@@ -289,18 +156,11 @@ export default function TrustBar() {
       </div>
 
       <div className={`relative ${FRAME}`}>
-        <div className={`py-24 sm:py-32 ${INSET}`}>
-          <span
-            className="tb-mark block h-px w-8 bg-cta"
-            aria-hidden="true"
-          />
+        <div className={`pt-24 sm:pt-32 ${INSET}`}>
+          <span className="tb-mark block h-px w-8 bg-cta" aria-hidden="true" />
           <h2 className="mt-6 max-w-3xl text-[2.2rem] font-semibold leading-[1.04] tracking-[-0.028em] text-bg sm:text-[3rem] lg:text-[3.6rem]">
-            <span className="tb-heading-line block">
-              Trusted by Businesses,
-            </span>
-            <span className="tb-heading-line block">
-              Organizations &amp; Growing Brands
-            </span>
+            <span className="tb-heading-line block">Trusted by Businesses,</span>
+            <span className="tb-heading-line block">Organizations &amp; Growing Brands</span>
           </h2>
           <p className="tb-lede mt-6 max-w-2xl text-lg leading-relaxed text-bg sm:text-xl">
             From startups to established enterprises, SKY Tech has helped
@@ -308,33 +168,19 @@ export default function TrustBar() {
             design turn ideas into measurable results.
           </p>
 
-          <div className="mt-16 sm:mt-20">
+          {/* The results, in one line. Three cells, dotted rules between them,
+              ruled top and bottom like a spec sheet's summary row. */}
+          <div className="mt-14 grid grid-cols-3 border-y border-bg/15 sm:mt-16">
             {STATS.map((stat, i) => {
               const digits = String(stat.value).split("").map(Number);
               return (
                 <div
                   key={stat.label}
-                  ref={(el) => {
-                    rowRefs.current[i] = el;
-                  }}
-                  className="flex items-end gap-4 border-t border-bg/15 py-8 last:border-b sm:gap-8 sm:py-10"
+                  className={`tb-cell flex flex-col items-center gap-2 py-7 text-center sm:gap-3 sm:py-9 ${
+                    i > 0 ? "border-l border-dotted border-bg/25" : ""
+                  }`}
                 >
-                  <div className="flex min-w-0 shrink-0 flex-col gap-5">
-                    <span className="font-display text-base font-medium text-bg sm:text-lg">
-                      {stat.label}
-                    </span>
-                    <StatVisual kind={stat.visual} row={i} />
-                  </div>
-
-                  <span
-                    ref={(el) => {
-                      leaderRefs.current[i] = el;
-                    }}
-                    aria-hidden="true"
-                    className="mb-2 hidden h-px flex-1 border-b border-dotted border-bg/30 sm:block"
-                  />
-
-                  <span className="ml-auto flex shrink-0 items-end font-mono text-5xl leading-none font-medium text-bg sm:ml-0 sm:text-6xl lg:text-7xl">
+                  <span className="flex items-end font-mono text-[2.1rem] leading-none font-medium text-bg sm:text-5xl lg:text-6xl">
                     <span className="sr-only">
                       {stat.value}+ {stat.label}
                     </span>
@@ -348,11 +194,7 @@ export default function TrustBar() {
                           className="block overflow-hidden"
                           style={{ height: "1em" }}
                         >
-                          <span
-                            data-total={strip.length}
-                            data-row={i}
-                            className="block"
-                          >
+                          <span data-total={strip.length} data-row={i} className="block">
                             {strip.map((n, k) => (
                               <span
                                 key={k}
@@ -371,11 +213,31 @@ export default function TrustBar() {
                       +
                     </span>
                   </span>
+
+                  <span
+                    aria-hidden="true"
+                    className="font-display text-[0.78rem] leading-tight text-bg/75 sm:text-sm lg:text-base"
+                  >
+                    {stat.label}
+                  </span>
                 </div>
               );
             })}
           </div>
         </div>
+      </div>
+
+      {/* The wall runs past the frame, edge to edge, as the Technology band
+          on the service pages does. */}
+      <div className="tb-wall relative pb-20 pt-14 sm:pb-24 sm:pt-16">
+        <p className={`mb-8 flex items-center justify-center gap-4 sm:mb-10 ${INSET}`}>
+          <span aria-hidden="true" className="block h-px w-8 bg-cta sm:w-10" />
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-cta sm:text-[11px]">
+            {BRANDS.length} Brands We&rsquo;ve Worked With
+          </span>
+          <span aria-hidden="true" className="block h-px w-8 bg-cta sm:w-10" />
+        </p>
+        <BrandMarquee />
       </div>
     </section>
   );

@@ -121,6 +121,28 @@ export default function ServiceClosing({ page }: { page: ServicePage }) {
               <Arrow className="transition-transform duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1" />
             </Link>
           </div>
+
+          {/* One line out to a page that answers a different question.
+
+              Event coverage and running the event itself are separate jobs
+              sold to different people, and for a while the site had a page
+              for each competing for the same search. They are told apart now
+              — this page is the cameras, /media-events is the division that
+              runs the day — and a sentence saying so is what stops a visitor
+              who wants the other one from leaving instead of crossing over.
+              Only rendered where a service has one. */}
+          {closing.crossLink && (
+            <p className="svz-action mt-8 text-[14px] leading-relaxed text-white/75 [text-wrap:pretty]">
+              {closing.crossLink.before}{" "}
+              <Link
+                href={closing.crossLink.href}
+                className="font-medium text-white underline decoration-white/40 underline-offset-4 transition-colors duration-300 hover:decoration-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                {closing.crossLink.label}
+              </Link>
+              {closing.crossLink.after}
+            </p>
+          )}
         </div>
       </div>
 

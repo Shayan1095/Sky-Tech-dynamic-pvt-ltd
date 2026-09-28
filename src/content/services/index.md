@@ -66,9 +66,9 @@ Strategic and engaging content created to communicate, inform, rank and convert 
 Professional video production, reels, corporate videos and social-first visual content.
 → Explore Video Production
 
-**Media & Events**
+**Event Photography & Video**
 Professional event planning, photography, videography, live coverage and content production for corporate and brand events.
-→ Explore Media & Events
+→ Explore Event Photography & Video
 
 ---
 

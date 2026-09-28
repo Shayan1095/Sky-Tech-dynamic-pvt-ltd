@@ -17,7 +17,7 @@ export const BUILT_SERVICE_PAGES = {
   "Content Writing": "content-writing",
   "Graphic Design": "graphic-design",
   "Video Editing & Production": "video-production",
-  "Media & Events": "media-events",
+  "Event Photography & Video": "event-photography-video",
 } as const;
 
 export type BuiltServiceSlug = (typeof BUILT_SERVICE_PAGES)[keyof typeof BUILT_SERVICE_PAGES];

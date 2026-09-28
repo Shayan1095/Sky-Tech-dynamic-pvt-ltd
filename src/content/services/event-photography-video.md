@@ -1,31 +1,32 @@
 ---
-url: /services/media-events/
-meta_title: Media & Events Services | Photography & Videography | SKY Tech
-meta_description: Professional event coverage, photography, and videography. Corporate events, brand activations, and live event production.
-keywords: event photography, event videography, corporate event services, event coverage, professional photography
+url: /services/event-photography-video/
+meta_title: Event Photography & Videography | Live Event Coverage | SKY Tech
+meta_description: Professional event photography, videography and live streaming for conferences, launches and corporate events, with same-day reels and post-event content.
+keywords: event photography, event videography, live streaming, event coverage, corporate event photographer, post-event content
 ---
 
-# Media & Events Services
+# Event Photography & Videography
 
 ## Meta Title
 
-Media & Events Services \| Event Coverage & Production \| SKY Tech
+Event Photography & Videography | Live Event Coverage | SKY Tech
 
 ## Meta Description
 
-Professional media and event services for corporate events, conferences,
-launches and social events. Photography, videography, live streaming,
-event coverage and post-event content by SKY Tech.
+Professional event photography, videography and live streaming for
+corporate events, conferences and launches, with same-day reels and
+post-event content by SKY Tech. Full event management is handled by SKY
+Tech Media & Event at /media-events/.
 
 ## URL
 
-/services/media-events/
+/services/event-photography-video/
 
 ## Primary Keywords
 
-Media & Events Services, Event Management Services, Event Coverage,
-Event Photography, Event Videography, Event Production, Corporate Event
-Services, Live Streaming Services
+Event Photography, Event Videography, Live Event Coverage, Event
+Production, Corporate Event Photographer, Live Streaming Services,
+Post-Event Content
 
 # H1
 
@@ -129,7 +130,7 @@ signage and digital assets.
 Coordinate required audio, video, display and presentation equipment
 according to event requirements.
 
-# Our Media & Events Packages
+# Our Event Photography & Video Packages
 
 ## 01 --- Event Essentials
 
@@ -577,7 +578,7 @@ Your event footage can continue generating value after the event.
 
 **CTA: Repurpose My Event Content**
 
-# Our Media & Events Process
+# Our Event Photography & Video Process
 
 ## 01 --- Discover
 
@@ -622,7 +623,7 @@ formats.
 Additional content can be created from the event material for ongoing
 marketing.
 
-# What Makes Our Media & Events Service Different?
+# What Makes Our Event Photography & Video Service Different?
 
 ### One Team
 
@@ -658,7 +659,7 @@ digital campaigns.
 Your event visuals and post-event content can be aligned with your brand
 identity.
 
-# Media & Events Add-ons
+# Event Photography & Video Add-ons
 
   -----------------------------------------------------------------------
   Add-on Service                      Starting Price

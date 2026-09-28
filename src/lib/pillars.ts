@@ -213,7 +213,7 @@ export const PILLARS: readonly Pillar[] = [
     index: "03",
     name: "Creative & Media Services",
     anchor: "#creative--media-services",
-    short: "Graphic Design · Video Editing & Production · Media & Events",
+    short: "Graphic Design · Video Editing & Production · Event Photography & Video",
     introHeading: "Creative Work That Makes Your Brand Stand Out.",
     introParagraphs: [
       "Your brand needs more than good ideas. It needs clear communication, consistent visuals and content that connects with people.",
@@ -253,8 +253,8 @@ export const PILLARS: readonly Pillar[] = [
         ],
       },
       {
-        name: "Media & Events",
-        slug: "media-events",
+        name: "Event Photography & Video",
+        slug: "event-photography-video",
         summary:
           "Professional event planning, photography, videography, live coverage and content production for corporate and brand events.",
         offers: [

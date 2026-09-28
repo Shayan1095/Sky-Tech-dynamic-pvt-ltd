@@ -4,6 +4,7 @@ import Image from "next/image";
 import { serviceLink } from "@/lib/site";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { useLenis } from "lenis/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { SERVICE_META } from "@/lib/services";
 
@@ -165,6 +166,15 @@ const Arrow = ({ className = "" }: { className?: string }) => (
 
 export default function ServicesSection() {
   const sectionRef = useRef<HTMLElement>(null);
+
+  /* Lenis owns the page scroll, so the pager has to ask Lenis to move rather
+     than the window — see jumpTo below. It is kept in a ref because the setup
+     effect runs once, while the instance arrives on a later render. */
+  const lenis = useLenis();
+  const lenisRef = useRef(lenis);
+  useEffect(() => {
+    lenisRef.current = lenis;
+  }, [lenis]);
 
   useEffect(() => {
     const root = sectionRef.current;
@@ -335,10 +345,18 @@ export default function ServicesSection() {
           // pulled just inside the end so the last one does not unpin on
           // arrival.
           const at = Math.min(0.985, k / (cards.length - 1));
-          window.scrollTo({
-            top: pin.start + PIN_LENGTH * at,
-            behavior: "smooth",
-          });
+          const top = pin.start + PIN_LENGTH * at;
+
+          /* Lenis runs the page's scroll, and it overwrites the position
+             every frame from its own loop. A native smooth scroll is
+             therefore undone as fast as the browser applies it — the page
+             does not move at all, which is what left this pager dead. Ask
+             Lenis instead, exactly as the footer's back-to-top does; the
+             window call is the fallback for reduced motion, where there is
+             no Lenis to ask. */
+          const scroller = lenisRef.current;
+          if (scroller) scroller.scrollTo(top, { duration: 0.9 });
+          else window.scrollTo({ top, behavior: "smooth" });
         };
 
         const onDot = (e: Event) => {

@@ -161,7 +161,7 @@ export const SERVICE_ADDONS: Record<string, readonly AddOn[]> = {
     { name: "Storyboarding", price: "$75" },
     { name: "Additional Video Version", price: "Custom Quote" },
   ],
-  "Media & Events": [
+  "Event Photography & Video": [
     { name: "Additional Photography Hour", price: "$50" },
     { name: "Additional Videography Hour", price: "$75" },
     { name: "Additional Photographer", price: "$100" },

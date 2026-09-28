@@ -1,10 +1,89 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { usePathname } from "next/navigation";
 import { ReactLenis, type LenisRef } from "lenis/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+/* Put the page back to the top before the new route measures itself.
+
+   Next scrolls to the top on a navigation, but Lenis owns the scroll position
+   here: it keeps its own animated value and writes it back to the window on
+   the next tick, so a route arrived at from halfway down another page begins
+   life with the window still at that offset. Lenis has to be told.
+
+   Left untold, it is not only that the visitor lands mid-page. Every section
+   of the incoming route builds its ScrollTriggers in a layout effect, and
+   from a deep offset a whole run of them is already past its start, so each
+   one fires as it is created and the `once` ones kill themselves while
+   ScrollTrigger is still walking the list they are removing themselves from.
+   It reads a property off the gap that leaves, throws, and — because this is
+   a layout effect — React treats the throw as a failed render and unmounts
+   the route. What the visitor gets is a blank page that will not scroll.
+   Clicking any service in the footer did exactly this.
+
+   This is a layout effect on a component rendered before the children, so it
+   runs before any of their effects: by the time a section measures itself,
+   the page is at the top, and nothing fires while it is being built. */
+function ScrollTopOnRouteChange({ lenisRef }: { lenisRef: RefObject<LenisRef | null> }) {
+  const pathname = usePathname();
+  /* The first run is the page being loaded, not navigated to; the browser
+     has already put it where it belongs, hash included. */
+  const navigated = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!navigated.current) {
+      navigated.current = true;
+      return;
+    }
+    /* A link to an anchor on another page is asking for that anchor, and the
+       browser is about to honour it. Leave those alone. */
+    if (window.location.hash) return;
+
+    lenisRef.current?.lenis?.scrollTo(0, { immediate: true, force: true });
+    window.scrollTo(0, 0);
+  }, [pathname, lenisRef]);
+
+  /* And then tell it how long the new page is.
+
+     Lenis caches the scrollable length and will not scroll past it. Nothing
+     recomputes that on a route change, so arriving at a page from a shorter
+     one, the visitor could scroll exactly as far as the page they came from
+     and no further: from Contact, which stops at 2,841px, a 15,822px service
+     page came to a dead stop a fifth of the way down with eleven sections
+     still below. Nothing was frozen — the page had simply been told it was
+     2,841 pixels long.
+
+     Measured after a frame, once the incoming route has laid out, and again
+     when the web fonts land and the text re-wraps. ScrollTrigger is told at
+     the same time, since every trigger on the new page was measured against
+     the same stale height. */
+  useEffect(() => {
+    let cancelled = false;
+    const remeasure = () => {
+      if (cancelled) return;
+      lenisRef.current?.lenis?.resize();
+      ScrollTrigger.refresh();
+    };
+    const frame = requestAnimationFrame(remeasure);
+    document.fonts?.ready.then(remeasure);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [pathname, lenisRef]);
+
+  return null;
+}
 
 function subscribeToMotionPreference(onChange: () => void) {
   const mediaQuery = window.matchMedia(REDUCED_MOTION);
@@ -97,6 +176,7 @@ export default function SmoothScrollProvider({
 
   return (
     <ReactLenis root ref={lenisRef} options={{ autoRaf: false }}>
+      <ScrollTopOnRouteChange lenisRef={lenisRef} />
       {children}
     </ReactLenis>
   );

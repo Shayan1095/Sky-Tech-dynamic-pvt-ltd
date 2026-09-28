@@ -6,7 +6,7 @@ import { DIGITAL_MARKETING } from "./digital-marketing";
 import { GOOGLE_ADS } from "./google-ads";
 import { GRAPHIC_DESIGN } from "./graphic-design";
 import { HOSTING_DOMAIN } from "./hosting-domain";
-import { MEDIA_EVENTS } from "./media-events";
+import { EVENT_PHOTOGRAPHY_VIDEO } from "./event-photography-video";
 import { META_ADS } from "./meta-ads";
 import { SOCIAL_MEDIA_MANAGEMENT } from "./social-media-management";
 import { UI_UX_DESIGN } from "./ui-ux-design";
@@ -31,7 +31,7 @@ export const SERVICE_PAGES: Record<BuiltServiceSlug, ServicePage> = {
   "content-writing": CONTENT_WRITING,
   "graphic-design": GRAPHIC_DESIGN,
   "video-production": VIDEO_PRODUCTION,
-  "media-events": MEDIA_EVENTS,
+  "event-photography-video": EVENT_PHOTOGRAPHY_VIDEO,
 };
 
 export function getServicePage(slug: string): ServicePage | undefined {

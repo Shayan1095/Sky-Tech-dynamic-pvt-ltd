@@ -499,3 +499,41 @@ export const trustedDevices = mysqlTable(
   },
   (t) => [index("trusted_devices_user_idx").on(t.userId, t.expiresAt)]
 );
+
+/* ---------------------------------------------------------------------------
+   Offers.
+
+   A promotion attached to a service — "20% off the Signature Cinematic
+   package until the end of March". The decks carry these as printed artwork,
+   which means they outlive the offer: a PDF cannot notice that March has
+   passed. Here an offer has a window, and the site stops showing it on its
+   own the moment the window closes, with nobody having to remember.
+
+   `serviceName` is the service exactly as the contact form names it, or "*"
+   for one that applies everywhere. Several may exist for the same service;
+   the newest active one inside its window is the one shown, so replacing an
+   offer is a matter of adding the new one rather than finding the old.
+   ------------------------------------------------------------------------ */
+export const serviceOffers = mysqlTable(
+  "service_offers",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    /* The service this belongs to, or "*" for every service. */
+    serviceName: varchar("service_name", { length: 60 }).notNull(),
+    /* The headline, e.g. "20% off until 31 March". */
+    title: varchar("title", { length: 140 }).notNull(),
+    /* One sentence of detail. Optional. */
+    body: varchar("body", { length: 400 }).notNull(),
+    /* A promo code, shown as something to quote. Optional. */
+    code: varchar("code", { length: 40 }).notNull(),
+    /* Null means "from now" and "until switched off" respectively. Both are
+       compared in UTC, as every other time in this database is. */
+    startsAt: datetime("starts_at"),
+    endsAt: datetime("ends_at"),
+    isActive: int("is_active").notNull(),
+    createdAt: datetime("created_at").notNull(),
+    updatedAt: datetime("updated_at").notNull(),
+    updatedBy: int("updated_by"),
+  },
+  (t) => [index("service_offers_lookup_idx").on(t.serviceName, t.isActive)]
+);

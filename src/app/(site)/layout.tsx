@@ -6,6 +6,7 @@ import Footer from "@/components/shared/Footer";
 import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 import { Analytics } from "@/components/shared/Analytics";
 import { SettingsProvider } from "@/components/shared/SettingsProvider";
+import WhatsAppButton from "@/components/shared/WhatsAppButton";
 import { PricesProvider } from "@/components/shared/PricesProvider";
 import { getSettings } from "@/lib/server/settings";
 import { getPriceMap } from "@/lib/server/prices";
@@ -36,6 +37,9 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
         <main className="flex-1">{children}</main>
         <Footer />
       </SmoothScrollProvider>
+      {/* Outside the smooth-scroll provider: it is fixed to the viewport and
+          has nothing to do with the scrolled page. */}
+      <WhatsAppButton />
       </PricesProvider>
     </SettingsProvider>
   );

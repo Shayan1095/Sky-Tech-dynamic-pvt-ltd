@@ -22,11 +22,12 @@ const NAV: readonly NavItem[] = [
   { href: "/admin/traffic", label: "Traffic", glyph: "04" },
   { href: "/admin/email", label: "Email", glyph: "05" },
   { href: "/admin/prices", label: "Prices", glyph: "06" },
-  { href: "/admin/pages", label: "Page Text", glyph: "07" },
-  { href: "/admin/mobile", label: "Mobile Layout", glyph: "08" },
-  { href: "/admin/settings", label: "Site Details", glyph: "09" },
-  { href: "/admin/admins", label: "Access", glyph: "10" },
-  { href: "/admin/activity", label: "Activity", glyph: "11" },
+  { href: "/admin/offers", label: "Offers", glyph: "07" },
+  { href: "/admin/pages", label: "Page Text", glyph: "08" },
+  { href: "/admin/mobile", label: "Mobile Layout", glyph: "09" },
+  { href: "/admin/settings", label: "Site Details", glyph: "10" },
+  { href: "/admin/admins", label: "Access", glyph: "11" },
+  { href: "/admin/activity", label: "Activity", glyph: "12" },
 ];
 
 export default async function PanelLayout({ children, drawer }: LayoutProps<"/admin">) {

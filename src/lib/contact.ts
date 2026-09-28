@@ -136,15 +136,48 @@ export const SERVICE_GROUPS: Array<{
         ],
       },
       {
-        // The detailed packages in media-events.md; the summary table at
-        // the end of that file is not used.
-        name: "Media & Events",
+        // The detailed packages in event-photography-video.md; the summary
+        // table at the end of that file is not used.
+        name: "Event Photography & Video",
         packages: [
           { name: "Event Essentials", price: "$250" },
           { name: "Event Pro", price: "$500" },
           { name: "Event Premium", price: "$900" },
           { name: "Full Event Production", price: "$1,500" },
           { name: "Custom Event Solution", price: "Custom Quote" },
+        ],
+      },
+      {
+        /* SKY Tech Media & Event — the division, not the service above.
+           Someone asking about a Walima is not asking for the same thing as
+           someone buying event coverage by the day, and until this existed
+           they had nowhere to land: /media-events sent the package they had
+           chosen to a form that had no package that matched, so the name of
+           it was dropped on the way in and the enquiry arrived saying only
+           "an event, some package".
+
+           Prices are the published ones from the celebration deck, in
+           rupees, exactly as /media-events shows them. They are quoted here
+           only so the form can recognise the package the visitor clicked —
+           the page remains the place they are set. */
+        name: "Media & Event",
+        packages: [
+          { name: "Nikah / Engagement", price: "PKR 35,000" },
+          { name: "Mehndi / Mayo", price: "PKR 45,000" },
+          { name: "Barat / Shadi", price: "PKR 55,000" },
+          { name: "Walima", price: "PKR 45,000" },
+          { name: "Outdoor Couple Shoot", price: "PKR 35,000" },
+          { name: "Two Events", price: "PKR 95,000" },
+          { name: "Complete Wedding", price: "PKR 135,000" },
+          { name: "Bridal Shower — Basic", price: "PKR 85,000" },
+          { name: "Bridal Shower — Standard", price: "PKR 125,000" },
+          { name: "Bridal Shower — Premium", price: "PKR 185,000" },
+          { name: "Dholki — Basic", price: "PKR 75,000" },
+          { name: "Dholki — Standard", price: "PKR 115,000" },
+          { name: "Dholki — Premium", price: "PKR 175,000" },
+          { name: "Qawwali Night — Basic", price: "PKR 150,000" },
+          { name: "Qawwali Night — Standard", price: "PKR 250,000" },
+          { name: "Qawwali Night — Premium", price: "PKR 400,000" },
         ],
       },
     ],
@@ -252,7 +285,16 @@ export function readValues(data: FormData): ContactValues {
   };
 }
 
-export function validate(values: ContactValues, fields: ContactField[]): ContactErrors {
+export function validate(
+  values: ContactValues,
+  fields: ContactField[],
+  /* A free consultation with no subject is an enquiry nobody can prepare
+     for — somebody has to write back and ask what it is about before any
+     work can start. When the visitor arrived by asking for one, the service
+     stops being optional. Checked here rather than in the form alone, so a
+     submission that skips the browser is held to the same rule. */
+  options: { requireService?: boolean } = {}
+): ContactErrors {
   const errors: ContactErrors = {};
 
   for (const field of fields) {
@@ -281,7 +323,11 @@ export function validate(values: ContactValues, fields: ContactField[]): Contact
         if (!value) errors.country = "Please enter your country.";
         break;
       case "need":
-        if (value && !isService(value)) errors.need = "Please choose a service from the list.";
+        if (!value && options.requireService) {
+          errors.need = "Please choose which service your consultation is about.";
+        } else if (value && !isService(value)) {
+          errors.need = "Please choose a service from the list.";
+        }
         break;
       case "budget":
         // A package must belong to the chosen service; "Custom" is always allowed.
@@ -321,7 +367,7 @@ export type ContactResult =
    submitted value — and, like every submitted value, it is only trusted
    after it has been matched against this list.
    ------------------------------------------------------------------------ */
-export const ENQUIRY_TYPES = ["package", "consultation"] as const;
+export const ENQUIRY_TYPES = ["package", "consultation", "demo"] as const;
 
 export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
 
@@ -344,6 +390,18 @@ export const ENQUIRY_LABELS: Record<EnquiryType, { badge: string; note: string }
   },
   consultation: {
     badge: "Free Consultation",
-    note: "You're booking a free consultation. Share as much or as little as you like — we'll take it from there.",
+    note: "You're booking a free consultation. Tell us which service it's about below, and share as much or as little else as you like — we'll take it from there.",
+  },
+  demo: {
+    badge: "Product Demo",
+    note: "You're asking to see one of our systems running. Tell us a little about how your business works and we'll set the demo up with your own kind of data.",
   },
 };
+
+/* The package note above is written for the Services page's combination
+   builder, where the visitor has assembled several services and none of them
+   has a price yet. Arriving from a published price list it is wrong in both
+   halves: there is one package, not a combination, and it is already priced.
+   Used in place of it whenever the link named a package we can recognise. */
+export const NAMED_PACKAGE_NOTE =
+  "You're asking about the package shown above. Tell us the date and anything particular about the day, and we'll confirm it.";

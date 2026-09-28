@@ -38,7 +38,7 @@ Whether you need a new website, a complete digital marketing strategy, professio
 |---|---|
 | [Technology & Digital Solutions](#technology--digital-solutions) | Web Development · WordPress Development · UI/UX Design · Website Maintenance · Hosting & Domain |
 | [Digital Marketing & Growth](#digital-marketing--growth) | Digital Marketing · Social Media Management · Google Ads · Meta Ads · Content Writing |
-| [Creative & Media Services](#creative--media-services) | Graphic Design · Video Editing · Media & Events |
+| [Creative & Media Services](#creative--media-services) | Graphic Design · Video Editing · Event Photography & Video |
 
 ---
 
@@ -305,7 +305,7 @@ Professional video editing for social media, marketing, corporate and digital co
 
 ---
 
-### Media & Events
+### Event Photography & Video
 
 Professional event planning, photography, videography, live coverage and content production for corporate and brand events.
 
@@ -322,7 +322,7 @@ Professional event planning, photography, videography, live coverage and content
 - Social media event coverage
 - Post-event content
 
-[Explore Media & Events →](/services/media-events)
+[Explore Event Photography & Video →](/services/event-photography-video)
 
 ---
 

@@ -16,11 +16,13 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { submitContact } from "@/lib/actions/contact";
 import ServiceSelect from "@/components/contact/ServiceSelect";
 import { combinationLabel, findCombination } from "@/lib/packages";
+import { PRODUCTS } from "@/lib/products";
 import { ADDON_SEPARATOR, readAddOns } from "@/lib/service-pages/addons";
 import { estimate, formatEstimate, headline } from "@/lib/service-pages/quote";
 import {
   CUSTOM_BUDGET,
   ENQUIRY_LABELS,
+  NAMED_PACKAGE_NOTE,
   FIELD_LIMITS,
   isEnquiryType,
   isService,
@@ -55,6 +57,21 @@ function useEnquiryType() {
     () => ""
   );
   return isEnquiryType(value) ? value : null;
+}
+
+/* The Products page's demo buttons add &product=<name>. Read the same way as
+   the enquiry type — from the address bar, resolved against the real product
+   list rather than trusted — so the only thing a crafted URL can put in the
+   box is one of five names we already publish. It lands in the details field,
+   which the visitor can edit and the server already validates, rather than in
+   a hidden field the form would have to start trusting. */
+function useDemoProduct() {
+  const value = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(window.location.search).get("product") ?? "",
+    () => ""
+  );
+  return PRODUCTS.find((p) => p.name === value)?.name ?? null;
 }
 /* The Services page's combination chooser adds &package=<slug>. The slug is
    resolved against the list rather than trusted, so nothing arbitrary from
@@ -105,6 +122,7 @@ function Field({
   error,
   multiline = false,
   className = "",
+  defaultValue,
 }: {
   name: ContactField;
   label: string;
@@ -115,6 +133,8 @@ function Field({
   error?: string;
   multiline?: boolean;
   className?: string;
+  /** Prefilled, and editable — never a value the visitor cannot change. */
+  defaultValue?: string;
 }) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -126,6 +146,7 @@ function Field({
     name,
     placeholder: " ",
     maxLength: FIELD_LIMITS[name],
+    defaultValue,
     "aria-invalid": error ? true : undefined,
     "aria-describedby": error ? errorId : undefined,
     "aria-required": required || undefined,
@@ -245,6 +266,7 @@ export default function ContactForm() {
      page. The visitor sees what they clicked reflected back, and the value
      travels with the submission so the inbox can tell the two apart. */
   const enquiryType = useEnquiryType();
+  const demoProduct = useDemoProduct();
   const chosenPackage = useChosenPackage();
   const requestedQuote = useRequestedQuote();
 
@@ -368,7 +390,9 @@ export default function ContactForm() {
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
-    const found = validate(readValues(new FormData(form)), [...STEP_ONE, ...STEP_TWO]);
+    const found = validate(readValues(new FormData(form)), [...STEP_ONE, ...STEP_TWO], {
+      requireService: enquiryType === "consultation",
+    });
     setErrors(found);
     const first = [...STEP_ONE, ...STEP_TWO].find((f) => found[f]);
     if (first) {
@@ -508,10 +532,21 @@ export default function ContactForm() {
                           ))}
                         </ul>
                         <p className="mt-3 border-t border-primary/15 pt-3 text-[13px] leading-relaxed text-text/70">
+                          {/* "Custom quote" is the right word for a package
+                              whose price is quoted after review, and the wrong
+                              one directly under a price the visitor has just
+                              read. The estimate only comes out to a figure for
+                              the dollar packages, so the rupee ones fell into
+                              the custom branch and contradicted themselves. */}
                           {headline(requestedQuote.estimate) ? (
                             <>
                               Estimated from{" "}
                               <span className="font-mono text-text">{formatEstimate(requestedQuote.estimate)}</span>
+                            </>
+                          ) : requestedQuote.tier && /\d/.test(requestedQuote.tier.price) ? (
+                            <>
+                              Package price{" "}
+                              <span className="font-mono text-text">{requestedQuote.tier.price}</span>
                             </>
                           ) : (
                             "Custom quote"
@@ -545,7 +580,11 @@ export default function ContactForm() {
                             <span className="mr-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary">
                               {ENQUIRY_LABELS[enquiryType].badge}
                             </span>
-                            <span className="[text-wrap:pretty]">{ENQUIRY_LABELS[enquiryType].note}</span>
+                            <span className="[text-wrap:pretty]">
+                              {enquiryType === "package" && requestedQuote?.tier
+                                ? NAMED_PACKAGE_NOTE
+                                : ENQUIRY_LABELS[enquiryType].note}
+                            </span>
                           </p>
 
                           {/* The exact combination chosen on the Services page,
@@ -706,7 +745,15 @@ export default function ContactForm() {
                     )}
 
                     <div className="mt-6 grid gap-x-8 gap-y-5">
-                      <Field name="details" label="Project Details" multiline error={errors.details} />
+                      <Field
+                        name="details"
+                        label="Project Details"
+                        multiline
+                        error={errors.details}
+                        defaultValue={
+                          demoProduct ? `I'd like a demo of ${demoProduct}.\n\n` : undefined
+                        }
+                      />
                       <Field name="timeline" label="Timeline" error={errors.timeline} />
                     </div>
 

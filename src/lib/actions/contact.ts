@@ -66,7 +66,9 @@ export async function submitContact(
   }
 
   const values = readValues(formData);
-  const errors = validate(values, [...STEP_ONE, ...STEP_TWO]);
+  const errors = validate(values, [...STEP_ONE, ...STEP_TWO], {
+    requireService: readEnquiryType(formData) === "consultation",
+  });
   if (Object.keys(errors).length > 0) {
     return { status: "invalid", errors };
   }

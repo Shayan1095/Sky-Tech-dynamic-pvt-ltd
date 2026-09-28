@@ -1,7 +1,7 @@
 import { SERVICE_ADDONS } from "./addons";
 import type { ServicePage } from "./types";
 
-/* Transcribed verbatim from src/content/services/media-events.md.
+/* Transcribed verbatim from src/content/services/event-photography-video.md.
 
    Resolved against the file:
    - The detailed package sections are the source; the summary table
@@ -17,12 +17,12 @@ import type { ServicePage } from "./types";
    - The timeline figure is the content's advance-booking guidance for
      larger events. The content names no tools, so there is no technology
      band. */
-export const MEDIA_EVENTS: ServicePage = {
-  slug: "media-events",
-  contactName: "Media & Events",
+export const EVENT_PHOTOGRAPHY_VIDEO: ServicePage = {
+  slug: "event-photography-video",
+  contactName: "Event Photography & Video",
 
   hero: {
-    label: "Media & Events Services",
+    label: "Event Photography & Video Services",
     h1: "We Capture the Moment. You Make the Impact.",
     accentWords: 4,
     subheadline:
@@ -119,7 +119,7 @@ export const MEDIA_EVENTS: ServicePage = {
   },
 
   packages: {
-    heading: "Our Media & Events Packages",
+    heading: "Our Event Photography & Video Packages",
     priceLabel: "Starting From",
     tiers: [
       {
@@ -537,14 +537,14 @@ export const MEDIA_EVENTS: ServicePage = {
   ],
 
   addOns: {
-    heading: "Media & Events Add-ons",
+    heading: "Event Photography & Video Add-ons",
     intro: "",
     columns: ["Add-on Service", "Starting Price"],
-    items: SERVICE_ADDONS["Media & Events"],
+    items: SERVICE_ADDONS["Event Photography & Video"],
   },
 
   why: {
-    heading: "What Makes Our Media & Events Service Different?",
+    heading: "What Makes Our Event Photography & Video Service Different?",
     items: [
       {
         title: "One Team",
@@ -587,7 +587,7 @@ export const MEDIA_EVENTS: ServicePage = {
   },
 
   process: {
-    heading: "Our Media & Events Process",
+    heading: "Our Event Photography & Video Process",
     steps: [
       {
         title: "Discover",
@@ -754,5 +754,11 @@ export const MEDIA_EVENTS: ServicePage = {
     promise: "Professional events. Powerful visuals. Content that lasts beyond the day.",
     primaryCta: "Plan My Event",
     secondaryCta: "Get a Free Quote",
+    crossLink: {
+      before: "Want the event run as well as filmed?",
+      label: "SKY Tech Media & Event",
+      href: "/media-events",
+      after: " plans and manages the day itself, with published package prices for weddings and celebrations.",
+    },
   },
 };

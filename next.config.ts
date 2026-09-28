@@ -59,9 +59,17 @@ const nextConfig: NextConfig = {
   },
   // The Services content links the video service as /services/video-editing,
   // but its own page (and content file) is /services/video-production.
+  //
+  // /services/media-events was this service's URL until it was narrowed to
+  // event photography and video. It kept colliding with /media-events — the
+  // division — for the same searches, one letter apart in the footer and
+  // chasing the same terms. The page is the same page; only what it claims
+  // has changed, so the old address points at it permanently rather than
+  // becoming a 404 for anyone holding a link to it.
   async redirects() {
     return [
       { source: "/services/video-editing", destination: "/services/video-production", permanent: true },
+      { source: "/services/media-events", destination: "/services/event-photography-video", permanent: true },
     ];
   },
 };

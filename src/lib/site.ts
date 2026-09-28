@@ -33,6 +33,8 @@ export const ROUTES: readonly string[] = [
   "/",
   "/services",
   ...BUILT_SERVICE_SLUGS.map((slug) => `/services/${slug}`),
+  "/products",
+  "/media-events",
   "/about",
   "/contact",
 ];

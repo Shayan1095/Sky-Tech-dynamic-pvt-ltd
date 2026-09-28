@@ -213,5 +213,10 @@ export type ServicePage = {
     promise: string;
     primaryCta: string;
     secondaryCta: string;
+    /* A sentence pointing at a page that answers a neighbouring question,
+       for the rare service that has one. Split around the link so the
+       sentence reads as a sentence rather than a label with a button after
+       it. Optional, and absent on almost every service. */
+    crossLink?: { before: string; label: string; href: string; after: string };
   };
 };

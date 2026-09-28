@@ -16,6 +16,8 @@ const useIsomorphicLayoutEffect =
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
+  { href: "/products", label: "Products" },
+  { href: "/media-events", label: "Media & Event" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

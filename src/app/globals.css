@@ -122,6 +122,29 @@ html[data-sky-seen] .sky-preloader {
   --ap-muted: #5a6472;
 }
 
+/* The WhatsApp button's ring, expanding and fading out from behind it.
+
+   Transform and opacity only, so it runs on the compositor and costs the
+   main thread nothing — this animates forever while the page is being read,
+   and anything that touched layout here would be felt on every scroll.
+
+   The element is behind the button and non-interactive, so growing past its
+   own bounds catches no clicks. */
+@keyframes waPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+
 /* Automate pillar: a single signal travelling the workflow line on hover.
    One pass per hover, never looping. Distance matches the line's height. */
 @keyframes approachPulse {
@@ -2040,6 +2063,17 @@ html[data-sky-seen] .sky-preloader {
   inset: 1px;
   background: var(--backing);
 }
+/* A client's logo, on the home page's brand wall. Unlike .svt-logo above it
+   is the owner's own artwork rather than a one-colour mask, so it is placed
+   at its drawn proportions and nothing is done to it: `contain` guarantees
+   the mark is never cropped or stretched, whatever shape it arrives in. */
+.svt-brand {
+  display: block;
+  flex: 0 0 auto;
+  height: 32px;
+  width: var(--logo-w, 32px);
+  object-fit: contain;
+}
 .svt-name {
   font-size: 14.5px;
   font-weight: 600;
@@ -2097,6 +2131,13 @@ html[data-sky-seen] .sky-preloader {
   }
   .svt-name {
     font-size: 13.5px;
+  }
+  /* The tile is shorter on a phone; the logo comes down with it. Width goes
+     to auto so the mark keeps its own proportions at the smaller height. */
+  .svt-brand {
+    height: 28px;
+    width: auto;
+    max-width: var(--logo-w, 28px);
   }
   .svt-viewport {
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
