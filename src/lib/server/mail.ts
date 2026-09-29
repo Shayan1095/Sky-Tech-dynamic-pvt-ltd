@@ -18,6 +18,11 @@ import { emailQueue } from "./schema";
    ------------------------------------------------------------------------ */
 
 const MAX_ATTEMPTS = 8;
+/* How long one sender may hold a message before another may try it again.
+   Long enough to cover a slow SMTP conversation (the socket timeout above is
+   20s), short enough that a process killed mid-send does not strand the
+   message for long. */
+const LEASE_SECONDS = 300;
 const BASE_DELAY_SECONDS = 300; // 5 minutes, doubling per attempt
 const MAX_DELAY_SECONDS = 6 * 60 * 60;
 
@@ -99,6 +104,38 @@ export async function flushMail(limit = 10): Promise<number> {
 
   let sent = 0;
   for (const row of due) {
+    /* Claim it before sending.
+
+       Selecting the pending rows and then sending them is safe with one
+       sender and wrong with two. This runs at the end of every form
+       submission and from the scheduled endpoint, on a platform that will
+       happily run several instances at once — so two of them could read the
+       same pending row, and both send it. The recipient gets the message
+       twice, and nothing in the table ever shows that it happened.
+
+       So each row is taken with a conditional update first: push its next
+       attempt into the future, and only send if this process was the one that
+       moved it. The condition re-checks the status and the due time inside the
+       same statement, which is what makes it a claim rather than a second
+       read. If the process dies mid-send the lease lapses and the message is
+       retried, which is the right way round — a message delayed five minutes
+       beats a message delivered twice. */
+    const claim = await handle
+      .update(emailQueue)
+      .set({ nextAttemptAt: sql`DATE_ADD(UTC_TIMESTAMP(), INTERVAL ${LEASE_SECONDS} SECOND)` })
+      .where(
+        and(
+          eq(emailQueue.id, row.id),
+          eq(emailQueue.status, "pending"),
+          lte(emailQueue.nextAttemptAt, sql`UTC_TIMESTAMP()`)
+        )
+      );
+
+    const header = Array.isArray(claim) ? claim[0] : claim;
+    const claimed = (header as { affectedRows?: number } | undefined)?.affectedRows ?? 0;
+    // Someone else already has it, or it stopped being due.
+    if (claimed !== 1) continue;
+
     try {
       await mailer.sendMail({
         from: config.from,

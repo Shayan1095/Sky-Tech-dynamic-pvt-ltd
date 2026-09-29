@@ -65,7 +65,7 @@ export default async function ClientsPage() {
               <li key={row.id} className="border-b border-text/[0.06] last:border-b-0">
                 <Link
                   href={`/admin/clients/${row.id}`}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 transition-colors duration-200 hover:bg-text/[0.02]"
+                  className="flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-4 transition-colors duration-200 hover:bg-text/[0.02] sm:items-center sm:px-5"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2.5">
@@ -74,12 +74,18 @@ export default async function ClientsPage() {
                       </span>
                       <Pill status={row.status} />
                     </div>
-                    <p className="mt-1 truncate text-[0.85rem] text-text/50">
+                    {/* Wraps on a phone, truncates once there is a row to
+                        truncate into. Cut to one line at 375px this was an
+                        email sliced in half and no country at all. */}
+                    <p className="mt-1 break-words text-[0.85rem] text-text/50 sm:truncate">
                       {row.name} · {row.email} · {row.country}
                     </p>
                   </div>
 
-                  <div className="text-right">
+                  {/* Full width and left-aligned once it has wrapped under
+                      the name, which on a phone it always has — right-aligned
+                      figures on their own line read as belonging to nothing. */}
+                  <div className="w-full text-left sm:w-auto sm:text-right">
                     {Number(row.monthly) > 0 && (
                       <p className="font-display text-[1rem] font-semibold tracking-[-0.01em] text-text">
                         {money(Number(row.monthly))}

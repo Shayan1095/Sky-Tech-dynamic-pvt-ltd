@@ -22,6 +22,8 @@ import ServiceFAQ from "@/components/service/ServiceFAQ";
 import ServiceRelated from "@/components/service/ServiceRelated";
 import ServiceClosing from "@/components/service/ServiceClosing";
 import MobileQuoteBar from "@/components/service/MobileQuoteBar";
+import Offer from "@/components/shared/Offer";
+import { FRAME, INSET } from "@/components/service/parts";
 import SectionNav from "@/components/service/SectionNav";
 
 /* One template, every service page. Only services listed in
@@ -125,6 +127,22 @@ export default async function ServiceDetailPage(props: PageProps<"/services/[slu
       <ServiceHero page={page} />
       {onPhones("problem", <ServiceProblem page={page} />)}
       {onPhones("offerings", <ServiceOfferings page={page} />)}
+      {/* A running promotion for this service, if one is on.
+
+          The panel has always let an offer be aimed at any of the services,
+          but the only page that ever rendered one was the weddings panel — so
+          an offer set against Web Development was saved, listed as live, and
+          shown to nobody. It sits immediately above the packages, which is
+          the part of the page it changes the price of.
+
+          An async server component: when there is no offer, or no database,
+          it renders nothing and the page is unchanged. */}
+      <div className={`relative ${FRAME}`}>
+        <div className={INSET}>
+          <Offer service={page.contactName} />
+        </div>
+      </div>
+
       <ServicePackages page={page} />
       {onPhones("capabilities", <ServiceCapabilities page={page} />)}
       {onPhones("extras", <ServiceExtras page={page} />)}

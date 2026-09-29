@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { headlineText } from "@/lib/service-pages/quote";
 import type { ServicePage } from "@/lib/service-pages/types";
 import { Arrow } from "./parts";
@@ -49,12 +49,38 @@ export default function MobileQuoteBar({ page }: { page: ServicePage }) {
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
+  const barRef = useRef<HTMLDivElement>(null);
   const shown = pastHero && !atClose;
+
+  /* Publish the height this bar is covering, so the floating WhatsApp button
+     can sit above it instead of on top of it. Measured rather than hard-coded:
+     the bar grows a line taller once the visitor has edited their quote, and
+     it is display:none above lg, where a measured box is 0 and the button
+     drops back to its own corner without anything special being said. */
+  useEffect(() => {
+    const bar = barRef.current;
+    const root = document.documentElement;
+    if (!bar) return;
+
+    const apply = () => {
+      const height = shown ? Math.round(bar.getBoundingClientRect().height) : 0;
+      root.style.setProperty("--mobile-bar-h", `${height}px`);
+    };
+    apply();
+
+    const observer = new ResizeObserver(apply);
+    observer.observe(bar);
+    return () => {
+      observer.disconnect();
+      root.style.setProperty("--mobile-bar-h", "0px");
+    };
+  }, [shown]);
   const { estimate, href, tier, addOns } = useServiceQuote(page);
   const edited = tier.id !== page.packages.tiers[0].id || addOns.length > 0;
 
   return (
     <div
+      ref={barRef}
       aria-hidden={!shown}
       {...(shown ? {} : { inert: true })}
       className={`svq-bar fixed inset-x-0 bottom-0 z-40 border-t border-text/10 bg-bg px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_32px_-18px_rgb(11_31_53/0.35)] lg:hidden ${

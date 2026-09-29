@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { savePrices, type PriceResult } from "@/lib/actions/prices";
 import type { EditablePrice } from "@/lib/server/prices";
@@ -18,9 +18,43 @@ export default function PricesForm({
   orphans: { service: string; packageName: string; price: string }[];
 }) {
   const [state, formAction, pending] = useActionState<PriceResult, FormData>(savePrices, null);
+  const [query, setQuery] = useState("");
+
+  /* Sixty-odd prices under thirteen services is a page you scroll rather than
+     read. The filter matches a package, a service or a category, so "walima",
+     "ads" and "content" all get you somewhere.
+
+     It hides rows; it never removes them. Every input stays mounted whatever
+     is typed here, because this is one form for the whole price list — drop
+     the filtered-out inputs from the DOM and saving while a filter is on
+     would post a form with most of the prices missing. */
+  const needle = query.trim().toLowerCase();
+  const hit = (...parts: string[]) =>
+    needle === "" || parts.some((p) => p.toLowerCase().includes(needle));
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
+      <div className="rounded-xl border border-text/[0.09] bg-card p-4">
+        <label className="flex items-center gap-3">
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-text/45">
+            Find
+          </span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Package, service or category…"
+            aria-label="Filter the price list"
+            className="w-full rounded-lg border border-text/12 bg-panel px-4 py-2 text-[0.9rem] text-text outline-none transition-colors duration-200 placeholder:text-text/30 focus:border-primary focus:bg-card"
+          />
+        </label>
+        {needle !== "" && (
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-text/40">
+            Filtering the view only — saving still writes every price
+          </p>
+        )}
+      </div>
+
       {orphans.length > 0 && (
         <div className="rounded-xl border border-[#b06000]/25 bg-[#b06000]/[0.05] p-5">
           <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#b06000]">
@@ -41,15 +75,26 @@ export default function PricesForm({
         </div>
       )}
 
-      {groups.map((group) => (
-        <div key={group.category} className="rounded-xl border border-text/[0.09] bg-card p-5">
+      {groups.map((group) => {
+        const shownServices = group.services.filter((service) =>
+          hit(group.category, service.name, ...service.items.map((i) => i.packageName))
+        );
+        return (
+        <div
+          key={group.category}
+          hidden={shownServices.length === 0}
+          className="rounded-xl border border-text/[0.09] bg-card p-5"
+        >
           <h2 className="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-text/45">
             {group.category}
           </h2>
 
           <div className="flex flex-col gap-6">
             {group.services.map((service) => (
-              <div key={service.name}>
+              <div
+                key={service.name}
+                hidden={!hit(group.category, service.name, ...service.items.map((i) => i.packageName))}
+              >
                 <h3 className="font-display text-[1rem] font-semibold tracking-[-0.01em] text-text">
                   {service.name}
                 </h3>
@@ -93,7 +138,20 @@ export default function PricesForm({
             ))}
           </div>
         </div>
-      ))}
+        );
+      })}
+
+      {needle !== "" &&
+        groups.every(
+          (group) =>
+            !group.services.some((service) =>
+              hit(group.category, service.name, ...service.items.map((i) => i.packageName))
+            )
+        ) && (
+          <p className="rounded-xl border border-text/[0.09] bg-card px-5 py-4 text-[0.9rem] text-text/55">
+            Nothing matches “{query}”.
+          </p>
+        )}
 
       {state && "error" in state && (
         <div

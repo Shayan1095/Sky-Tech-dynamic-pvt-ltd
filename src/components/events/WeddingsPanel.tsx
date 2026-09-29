@@ -10,7 +10,7 @@ import {
   type Package,
 } from "@/lib/media-events";
 import { FRAME, INSET, Arrow, H2, Words } from "@/components/service/parts";
-import Offer from "@/components/events/Offer";
+import Offer from "@/components/shared/Offer";
 
 /* The weddings half.
 

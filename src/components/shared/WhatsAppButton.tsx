@@ -57,17 +57,17 @@ export default function WhatsAppButton() {
       aria-label={`Chat with SKY Tech on WhatsApp, ${DISPLAY}`}
       data-shown={shown}
       className={[
-        "group fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full",
+        "group wa-fab fixed right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full",
         "bg-[#25D366] text-white",
         /* The glow: a wide, soft spill of the brand green, deepening on
            hover. Kept on box-shadow rather than a filter so it composites on
            the GPU and never forces a repaint of what is behind it. */
         "shadow-[0_2px_6px_rgb(18_18_18/0.18),0_10px_26px_-8px_rgb(37_211_102/0.65),0_0_28px_rgb(37_211_102/0.45)]",
         "hover:shadow-[0_2px_6px_rgb(18_18_18/0.2),0_14px_34px_-8px_rgb(37_211_102/0.8),0_0_44px_rgb(37_211_102/0.65)]",
-        "motion-safe:transition-[opacity,transform,box-shadow] motion-safe:duration-500",
+        "motion-safe:transition-[opacity,transform,box-shadow,bottom] motion-safe:duration-500",
         "[transition-timing-function:cubic-bezier(0.22,1,0.36,1)]",
         "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#25D366]",
-        "active:scale-[0.94] sm:bottom-7 sm:right-7 sm:h-15 sm:w-15",
+        "active:scale-[0.94] sm:right-7 sm:h-15 sm:w-15",
         shown
           ? "pointer-events-auto opacity-100 motion-safe:translate-y-0"
           : "pointer-events-none opacity-0 motion-safe:translate-y-3",

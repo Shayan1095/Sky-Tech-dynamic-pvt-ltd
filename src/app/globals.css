@@ -1756,6 +1756,22 @@ html[data-sky-seen] .sky-preloader {
   }
 }
 
+/* ---- Floating WhatsApp button -------------------------------------------
+   It sits in the bottom-right corner, and on a phone a service page puts its
+   quote bar across that same corner — the button landed on top of the bar's
+   own button. So its distance from the bottom is measured, not assumed: the
+   bar publishes its height as --mobile-bar-h while it is on screen, and zero
+   whenever it is away or above its breakpoint. Nothing else has to know which
+   pages carry a bar. */
+.wa-fab {
+  bottom: calc(1.25rem + var(--mobile-bar-h, 0px));
+}
+@media (min-width: 640px) {
+  .wa-fab {
+    bottom: calc(1.75rem + var(--mobile-bar-h, 0px));
+  }
+}
+
 /* ---- Budget finder -------------------------------------------------------
    Ranges the budget falls outside step back; the ones it fits stay lit. The
    dimming starts only once the visitor has moved the slider, so the chart

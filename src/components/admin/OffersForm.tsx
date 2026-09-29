@@ -1,5 +1,6 @@
 "use client";
 
+import { SERVICE_GROUPS } from "@/lib/contact";
 import { useState } from "react";
 
 import { ActionForm } from "@/components/admin/ActionForm";
@@ -58,8 +59,16 @@ function Badge({ state }: { state: string }) {
   );
 }
 
+/* The same field the rest of the panel uses.
+
+   This form had its own, and the difference mattered: it painted itself
+   bg-bg, and --color-bg is one of the few tokens the panel's dark theme does
+   not redefine. So every input and the service dropdown stayed white in dark
+   mode while their text followed --color-text and went almost white with it —
+   white on white. bg-panel is themed, and text-text is stated rather than
+   inherited. */
 const field =
-  "mt-1.5 block w-full rounded-lg border border-text/15 bg-bg px-3 py-2 text-sm outline-none transition-colors duration-200 focus:border-primary";
+  "mt-1.5 block w-full rounded-lg border border-text/12 bg-panel px-4 py-2.5 text-[0.9rem] text-text outline-none transition-colors duration-200 placeholder:text-text/30 focus:border-primary focus:bg-card";
 const label = "block font-mono text-[10px] uppercase tracking-[0.16em] text-text/65";
 
 export default function OffersForm({
@@ -70,6 +79,13 @@ export default function OffersForm({
   targets: string[];
 }) {
   const [editing, setEditing] = useState<OfferRow | null>(null);
+
+  /* Offerable things that are not one of the thirteen services — Weddings
+     belongs to the Media & Event division and has no service group of its
+     own. Derived rather than listed, so adding another one anywhere only
+     means adding it to offerTargets(). */
+  const grouped = new Set(SERVICE_GROUPS.flatMap((g) => g.services.map((s) => s.name)));
+  const ungrouped = targets.filter((t) => t !== "*" && !grouped.has(t));
 
   return (
     <div className="space-y-8">
@@ -88,17 +104,45 @@ export default function OffersForm({
               <label className={label} htmlFor="offer-service">
                 Applies to
               </label>
+              {/* Grouped by the same categories, in the same order, as the
+                  service picker on the contact form. It was a flat
+                  alphabetical run of every service, which put Content Writing
+                  between Meta Ads and Social Media Management and made a list
+                  of fourteen harder to search than it needed to be. Anything
+                  offerable that is not one of the service groups — Weddings,
+                  which belongs to the Media & Event division — lands in the
+                  last group rather than being dropped. */}
               <select
                 id="offer-service"
                 name="service"
                 defaultValue={editing?.serviceName ?? "*"}
                 className={field}
               >
-                {targets.map((target) => (
-                  <option key={target} value={target}>
-                    {target === "*" ? "Every service" : target}
-                  </option>
-                ))}
+                <option value="*">Every service</option>
+                {SERVICE_GROUPS.map((group) => {
+                  const inGroup = group.services
+                    .map((s) => s.name)
+                    .filter((name) => targets.includes(name));
+                  if (inGroup.length === 0) return null;
+                  return (
+                    <optgroup key={group.category} label={group.category}>
+                      {inGroup.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+                {ungrouped.length > 0 && (
+                  <optgroup label="Elsewhere on the site">
+                    {ungrouped.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
@@ -177,7 +221,9 @@ export default function OffersForm({
             </div>
           </div>
 
-          <label className="mt-5 flex items-center gap-3 text-sm">
+          {/* text-text, stated. Left to inherit, this line was the one
+              piece of copy in the form with no colour of its own. */}
+          <label className="mt-5 flex items-center gap-3 text-sm text-text">
             <input
               type="checkbox"
               name="isActive"

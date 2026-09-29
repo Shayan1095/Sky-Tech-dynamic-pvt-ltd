@@ -49,7 +49,7 @@ function reference(): string {
   return `SKY-${out}`;
 }
 
-function notificationText(input: EnquiryInput, ref: string): string {
+function notificationText(input: EnquiryInput, ref: string, receivedAt: string): string {
   const { values } = input;
 
   /* What they actually chose: a combination built on the Services page, or
@@ -86,6 +86,7 @@ function notificationText(input: EnquiryInput, ref: string): string {
   }
   if (input.estimate) lines.push(`Price     ${input.estimate}`);
   lines.push(`Timeline  ${values.timeline || "Not specified"}`);
+  lines.push(`Received  ${receivedAt}`);
   if (input.enquiryType) lines.push(`Source    ${input.enquiryType}`);
 
   lines.push("", "Project details", "---------------", values.details || "(none given)");
@@ -153,6 +154,11 @@ export async function createEnquiry(input: EnquiryInput): Promise<boolean> {
       .where(eq(enquiries.reference, ref))
       .limit(1);
 
+    /* One timestamp for the submission, so the notification quotes the
+       moment the enquiry actually arrived rather than the moment its mail
+       happened to leave. */
+    const receivedAt = new Date().toUTCString();
+
     const subject = input.packageName
       ? `${ref} — ${input.packageName} (${values.company})`
       : `${ref} — ${values.need || "General enquiry"} (${values.company})`;
@@ -163,7 +169,7 @@ export async function createEnquiry(input: EnquiryInput): Promise<boolean> {
       // Replying in the mail client reaches the visitor, not the site.
       replyTo: values.email,
       subject,
-      text: notificationText(input, ref),
+      text: notificationText(input, ref, receivedAt),
     });
 
     /* The visitor's own acknowledgement, if it has been switched on. It is
