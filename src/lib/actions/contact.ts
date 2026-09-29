@@ -13,6 +13,7 @@ import {
 } from "@/lib/contact";
 import { COMBINATIONS, combinationLabel } from "@/lib/packages";
 import { readAddOns } from "@/lib/service-pages/addons";
+import { PRODUCTS } from "@/lib/products";
 import { estimate, estimateLabel } from "@/lib/service-pages/quote";
 import { createEnquiry } from "@/lib/server/enquiries";
 import { hasDatabase } from "@/lib/server/env";
@@ -99,6 +100,15 @@ export async function submitContact(
       ? postedPackage
       : "";
 
+  /* The product a demo was asked for. Checked against the catalogue for the
+     same reason the enquiry type is: it arrives in a link, and a link can say
+     anything. An unrecognised name is dropped rather than stored. */
+  const postedProduct = formData.get("product");
+  const product =
+    typeof postedProduct === "string" && PRODUCTS.some((p) => p.name === postedProduct)
+      ? postedProduct
+      : "";
+
   // Add-ons from a service page's quote builder. Only add-ons that belong to
   // the selected service survive; anything else in the field is dropped.
   const addOnsRaw = formData.get("addons");
@@ -120,6 +130,7 @@ export async function submitContact(
       values,
       enquiryType: enquiry,
       packageName,
+      product,
       addOns,
       estimate: total,
       figures,

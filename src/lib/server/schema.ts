@@ -58,6 +58,14 @@ export const enquiries = mysqlTable(
     packageName: varchar("package_name", { length: 160 }).notNull(),
     addOns: text("add_ons").notNull(),
 
+    /* Which licensed product a demo was asked for, from the Products page's
+       "Request a demo" buttons. It used to travel only as a sentence typed
+       into the details box for the visitor, so anyone who rewrote that box
+       sent a demo request naming no product. Checked against the real
+       catalogue before it is stored, like every other value that arrives in
+       a link. Empty for every enquiry that is not a demo. */
+    product: varchar("product", { length: 80 }).notNull().default(""),
+
     /* The price the visitor was looking at when they submitted, recomputed
        here from the package and add-ons rather than taken from the form. */
     estimate: varchar("estimate", { length: 120 }).notNull(),

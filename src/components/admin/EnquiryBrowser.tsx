@@ -26,6 +26,7 @@ export type Row = {
   country: string;
   service: string;
   packageName: string;
+  product: string;
   budget: string;
   estimate: string;
   details: string;
@@ -247,6 +248,7 @@ export function EnquiryList({ rows }: { rows: Row[] }) {
 
                     <p className="mt-1 text-[0.875rem] text-text/55">
                       {row.service || "No service specified"}
+                      {row.product && ` · ${row.product}`}
                       {row.packageName && ` · ${row.packageName}`}
                       {row.budget && ` · ${row.budget}`}
                     </p>

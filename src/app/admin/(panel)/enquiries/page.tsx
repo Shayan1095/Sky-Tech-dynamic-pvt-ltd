@@ -63,6 +63,7 @@ export default async function EnquiriesPage({ searchParams }: PageProps<"/admin/
       country: enquiries.country,
       service: enquiries.service,
       packageName: enquiries.packageName,
+      product: enquiries.product,
       budget: enquiries.budget,
       estimate: enquiries.estimate,
       details: enquiries.details,

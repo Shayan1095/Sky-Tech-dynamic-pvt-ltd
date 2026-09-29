@@ -65,6 +65,7 @@ export function EnquiryDetail({
           <dl className={`grid gap-x-6 gap-y-3 ${compact ? "" : "sm:grid-cols-2"}`}>
             <Detail label="Service" value={enquiry.service || "Not specified"} />
             <Detail label="Budget" value={budgetOf(enquiry.budget, enquiry.budgetCustom)} />
+            {enquiry.product && <Detail label="Product" value={enquiry.product} />}
             {enquiry.packageName && <Detail label="Package" value={enquiry.packageName} />}
             <Detail label="Timeline" value={enquiry.timeline || "Not specified"} />
             {enquiry.estimate && <Detail label="Quoted" value={enquiry.estimate} />}

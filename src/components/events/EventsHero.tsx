@@ -110,7 +110,11 @@ export default function EventsHero() {
 
       <div className={`relative ${FRAME}`}>
         <div className={`py-14 sm:py-16 lg:py-24 ${INSET}`}>
-          <div className="eh-eyebrow flex items-center justify-between gap-6">
+          {/* Wraps on a phone. The two ends of this row are a brand lockup and
+              a tagline, and at 375px they wanted more width than the row had —
+              the right-hand one, being shrink-0, simply ran off the edge
+              rather than giving any up. */}
+          <div className="eh-eyebrow flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <p className="flex items-center gap-3">
               <span aria-hidden="true" className="block h-px w-8 bg-cta" />
               <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-cta sm:text-xs">
@@ -122,7 +126,18 @@ export default function EventsHero() {
             </span>
           </div>
 
-          <h1 className="mt-8 max-w-4xl text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.032em] sm:text-[3.6rem] lg:text-[4.3rem]">
+          {/* Fluid below the sm breakpoint, because each phrase is one
+              unbreakable line.
+
+              The reveal masks every phrase and slides it up from under its own
+              edge, which only works while the phrase is a single line — so
+              they carry whitespace-nowrap, and a nowrap line cannot reflow to
+              fit a narrow screen. At a fixed 2.6rem, "Powerful experiences."
+              measured 420px inside a 303px column on a 375px phone and hung
+              out of the hero. Sizing it in vw lets the longest line fit the
+              narrowest phone while keeping the type as large as the width
+              allows; the fixed sizes take over from sm, where they fit. */}
+          <h1 className="mt-8 max-w-4xl text-[clamp(1.6rem,7vw,2.6rem)] font-semibold leading-[1.02] tracking-[-0.032em] sm:text-[3.6rem] lg:text-[4.3rem]">
             <Phrase>Professional events.</Phrase> <Phrase>Powerful experiences.</Phrase>{" "}
             <Phrase>Memorable stories.</Phrase>
           </h1>

@@ -63,7 +63,17 @@ export default async function EmailPage({ searchParams }: PageProps<"/admin/emai
           : "Write and queue messages now; they send once the mailbox is configured."
       }
     >
-      <div className="grid gap-3 lg:grid-cols-[1.3fr_1fr]">
+      {/* Even columns, and only once there is room for two.
+
+          1.3fr against 1fr sounds like it favours the composer, and at this
+          width it does not: the outbox is a list of short lines that sits
+          comfortably in a narrow column, while the composer holds a subject
+          field, a template picker and a message body, and was being squeezed
+          into something you would not want to write a paragraph in. Equal
+          halves give the writing space back without starving the list. The
+          split also waits for xl now — at lg the two columns were around
+          460px each, which was too narrow for either. */}
+      <div className="grid gap-3 xl:grid-cols-2">
         <div className="flex flex-col gap-3">
         <Card>
           <CardTitle>Compose</CardTitle>

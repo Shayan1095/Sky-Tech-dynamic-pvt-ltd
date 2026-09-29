@@ -28,6 +28,9 @@ export type EnquiryInput = {
   enquiryType: string;
   packageName: string;
   addOns: readonly AddOn[];
+  /* The licensed product a demo was asked for, already checked against the
+     catalogue by the caller. Empty for everything that is not a demo. */
+  product: string;
   estimate: string;
   /* The same quote as numbers, so the dashboard can total a pipeline that the
      display string alone could never be added up from. */
@@ -48,10 +51,13 @@ function reference(): string {
 
 function notificationText(input: EnquiryInput, ref: string): string {
   const { values } = input;
-  const budget =
-    values.budget === CUSTOM_BUDGET
-      ? `Custom — ${values.budgetCustom || "not specified"}`
-      : values.budget || "Not specified";
+
+  /* What they actually chose: a combination built on the Services page, or
+     the single package picked from the budget list. Same fallback the
+     customer's auto-reply uses, so the two mails cannot disagree about what
+     was ordered. */
+  const chosenPackage =
+    input.packageName || (values.budget === CUSTOM_BUDGET ? "" : values.budget);
 
   const lines = [
     `New enquiry — ${ref}`,
@@ -65,12 +71,20 @@ function notificationText(input: EnquiryInput, ref: string): string {
     `Service   ${values.need || "Not specified"}`,
   ];
 
-  if (input.packageName) lines.push(`Package   ${input.packageName}`);
-  lines.push(`Budget    ${budget}`);
+  if (input.product) lines.push(`Product   ${input.product}`);
+  if (chosenPackage) lines.push(`Package   ${chosenPackage}`);
+  /* A budget line only when they typed one. Repeating the package name under
+     a second label told the reader nothing and made the two look like
+     different answers. */
+  if (values.budget === CUSTOM_BUDGET) {
+    lines.push(`Budget    Custom — ${values.budgetCustom || "not specified"}`);
+  } else if (!chosenPackage) {
+    lines.push("Budget    Not specified");
+  }
   if (input.addOns.length > 0) {
     lines.push("Add-ons   " + input.addOns.map((a) => `${a.name} (${a.price})`).join(", "));
   }
-  if (input.estimate) lines.push(`Estimate  ${input.estimate}`);
+  if (input.estimate) lines.push(`Price     ${input.estimate}`);
   lines.push(`Timeline  ${values.timeline || "Not specified"}`);
   if (input.enquiryType) lines.push(`Source    ${input.enquiryType}`);
 
@@ -106,6 +120,7 @@ export async function createEnquiry(input: EnquiryInput): Promise<boolean> {
         timeline: values.timeline,
         enquiryType: input.enquiryType,
         packageName: input.packageName,
+        product: input.product,
         addOns: JSON.stringify(input.addOns.map((a) => a.name)),
         estimate: input.estimate,
         estimateOnce: Math.round(input.figures.from),

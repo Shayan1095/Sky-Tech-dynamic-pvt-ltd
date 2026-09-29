@@ -647,6 +647,17 @@ export default function ContactForm() {
                       fields on step one and below them on step two, and it
                       repeated what the quote panel overhead already shows.
                       Only the hidden fields remain. */}
+                  {/* The demo's product, as a field.
+
+                      It reaches the page as ?product=<name> and was only ever
+                      spent on prefilling the details box. Anyone who rewrote
+                      that box — which is the box we ask them to write in —
+                      sent a demo request naming no product, and the panel had
+                      no way to know which system to set up. The sentence in
+                      the details box stays; this is what survives it being
+                      edited. Re-checked against the catalogue server-side. */}
+                  {demoProduct && <input type="hidden" name="product" value={demoProduct} />}
+
                   {enquiryType && (
                     <>
                       <input type="hidden" name="enquiry" value={enquiryType} />
