@@ -100,3 +100,25 @@ export function headlineText(e: Estimate): string {
   const h = headline(e);
   return h ? money(h.value) + h.suffix : "Custom Quote";
 }
+
+/* What to record against an enquiry, and to show the visitor.
+
+   Everything above reads dollars: parsePrice requires a "$" before it will
+   believe a number, because that is the currency every service package on
+   this site is priced in. The Media & Event packages are not — they are the
+   published rupee prices from the celebration deck — so the arithmetic finds
+   no figure in "PKR 45,000" and formatEstimate falls through to "Custom
+   Quote". A visitor who chose a package with a price printed beside it then
+   reached a form, and an inbox, saying their quote was custom.
+
+   Rather than teach the arithmetic a second currency — which would let a
+   rupee package and a dollar add-on be added together into a number that
+   means nothing, and would put rupees into the dollar totals the panel sums
+   for revenue — a price that cannot be added up is simply carried through as
+   it was written. It is the package's own published price, so it needs no
+   arithmetic to be true. */
+export function estimateLabel(e: Estimate, packagePrice?: string): string {
+  if (headline(e)) return formatEstimate(e);
+  if (packagePrice && /\d/.test(packagePrice)) return packagePrice;
+  return formatEstimate(e);
+}

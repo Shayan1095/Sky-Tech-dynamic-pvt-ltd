@@ -398,10 +398,3 @@ export const ENQUIRY_LABELS: Record<EnquiryType, { badge: string; note: string }
   },
 };
 
-/* The package note above is written for the Services page's combination
-   builder, where the visitor has assembled several services and none of them
-   has a price yet. Arriving from a published price list it is wrong in both
-   halves: there is one package, not a combination, and it is already priced.
-   Used in place of it whenever the link named a package we can recognise. */
-export const NAMED_PACKAGE_NOTE =
-  "You're asking about the package shown above. Tell us the date and anything particular about the day, and we'll confirm it.";

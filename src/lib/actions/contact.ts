@@ -13,7 +13,7 @@ import {
 } from "@/lib/contact";
 import { COMBINATIONS, combinationLabel } from "@/lib/packages";
 import { readAddOns } from "@/lib/service-pages/addons";
-import { estimate, formatEstimate } from "@/lib/service-pages/quote";
+import { estimate, estimateLabel } from "@/lib/service-pages/quote";
 import { createEnquiry } from "@/lib/server/enquiries";
 import { hasDatabase } from "@/lib/server/env";
 import { flushMail } from "@/lib/server/mail";
@@ -113,7 +113,7 @@ export async function submitContact(
   const listed = packagesFor(values.need).find((p) => p.name === values.budget)?.price;
   const chosenPrice = prices[priceKey(values.need, values.budget)] ?? listed;
   const figures = estimate(chosenPrice, addOns);
-  const total = formatEstimate(figures);
+  const total = estimateLabel(figures, chosenPrice);
 
   try {
     const stored = await createEnquiry({

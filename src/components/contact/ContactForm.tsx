@@ -12,17 +12,16 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { useLenis } from "lenis/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { submitContact } from "@/lib/actions/contact";
 import ServiceSelect from "@/components/contact/ServiceSelect";
 import { combinationLabel, findCombination } from "@/lib/packages";
 import { PRODUCTS } from "@/lib/products";
 import { ADDON_SEPARATOR, readAddOns } from "@/lib/service-pages/addons";
-import { estimate, formatEstimate, headline } from "@/lib/service-pages/quote";
+import { estimate, estimateLabel, formatEstimate, headline } from "@/lib/service-pages/quote";
 import {
   CUSTOM_BUDGET,
-  ENQUIRY_LABELS,
-  NAMED_PACKAGE_NOTE,
   FIELD_LIMITS,
   isEnquiryType,
   isService,
@@ -333,18 +332,50 @@ export default function ContactForm() {
     gsap.fromTo(el, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
   }, [step]);
 
+  /* Focus, without letting the browser scroll to it.
+
+     `focus()` on an element that is off screen scrolls the window to it
+     natively, and a native scroll is invisible to Lenis: it keeps its own
+     position and snaps the page back to it on the next wheel event. Worse,
+     ScrollTrigger is driven from Lenis's scroll event on this site, so
+     between the jump and the snap nothing is told the page moved — and every
+     section the reader then scrolls past stays unrevealed. Sending the form
+     moved focus to the confirmation, which is exactly this: the page lurched,
+     Lenis dragged it back, and everything below the form stopped animating.
+
+     So focus never scrolls, and anything that needs bringing into view is
+     brought by Lenis, which leaves both in agreement. */
+  const bringIntoView = (el: HTMLElement) => {
+    const box = el.getBoundingClientRect();
+    /* Already comfortably on screen: moving the page under someone who can
+       see the thing already is its own annoyance. */
+    if (box.top >= 80 && box.bottom <= window.innerHeight - 40) return;
+    const top = Math.max(0, box.top + window.scrollY - 140);
+    const scroller = lenisRef.current;
+    if (scroller) scroller.scrollTo(top, { duration: 0.6 });
+    else window.scrollTo({ top, behavior: "smooth" });
+  };
+
   const focusField = (name: ContactField) => {
     // Custom controls (the service picker) mark their focusable element.
     const el =
       formRef.current?.querySelector<HTMLElement>(`[data-field="${name}"]`) ??
       formRef.current?.querySelector<HTMLElement>(`[name="${name}"]`);
-    el?.focus();
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    bringIntoView(el);
   };
 
   /* Server responses: show field errors on the right step, or move focus to
      the status message so it's announced. */
   // State follows each new response during render (React's recommended
   // pattern); the effect below only moves focus once it has painted.
+  const lenis = useLenis();
+  const lenisRef = useRef(lenis);
+  useEffect(() => {
+    lenisRef.current = lenis;
+  }, [lenis]);
+
   const [handledState, setHandledState] = useState(state);
   if (state !== handledState) {
     setHandledState(state);
@@ -360,9 +391,58 @@ export default function ContactForm() {
       const first = [...STEP_ONE, ...STEP_TWO].find((f) => state.errors[f]);
       if (first) requestAnimationFrame(() => focusField(first));
     } else if (state.status === "unavailable" || state.status === "success") {
-      requestAnimationFrame(() => statusRef.current?.focus());
+      requestAnimationFrame(() => {
+        const el = statusRef.current;
+        if (!el) return;
+        el.focus({ preventScroll: true });
+        bringIntoView(el);
+      });
     }
   }, [state]);
+
+  /* This form changes height more than anything else on the site, and every
+     section under it is revealed by a scroll position measured once, when the
+     page loaded.
+
+     Sending is the worst of it: the two-step form is replaced by a short
+     confirmation, so the page loses something like a thousand pixels and
+     everything below jumps up by that much — while their triggers still wait
+     for the scroll positions those sections used to occupy. Positions that,
+     on a page now a thousand pixels shorter, can no longer be reached. The
+     reader scrolls to the bottom and the sections below simply never appear.
+     Stepping between 1 and 2, and errors appearing under fields, do a smaller
+     version of the same thing.
+
+     So the section is measured rather than guessed at: any change to its
+     height, from any cause, and the scroll engine and every trigger are told.
+     Watched on the section, not the form, because on success the form is the
+     element that went away. Coalesced to one refresh per frame — a resize can
+     fire several times as a panel lays out, and re-measuring every trigger on
+     the page is not something to do three times in a row. */
+  useEffect(() => {
+    const section = document.getElementById("contact-form");
+    if (!section) return;
+
+    let last = section.getBoundingClientRect().height;
+    let frame = 0;
+
+    const observer = new ResizeObserver(() => {
+      const height = section.getBoundingClientRect().height;
+      if (Math.abs(height - last) < 1) return;
+      last = height;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        lenis?.resize();
+        ScrollTrigger.refresh();
+      });
+    });
+
+    observer.observe(section);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [lenis]);
 
   const currentValues = () => readValues(new FormData(formRef.current ?? undefined));
 
@@ -375,12 +455,12 @@ export default function ContactForm() {
       return;
     }
     setStep(2);
-    requestAnimationFrame(() => stepRefs.current[1]?.querySelector<HTMLElement>("h3")?.focus());
+    requestAnimationFrame(() => stepRefs.current[1]?.querySelector<HTMLElement>("h3")?.focus({ preventScroll: true }));
   };
 
   const goBack = () => {
     setStep(1);
-    requestAnimationFrame(() => stepRefs.current[0]?.querySelector<HTMLElement>("h3")?.focus());
+    requestAnimationFrame(() => stepRefs.current[0]?.querySelector<HTMLElement>("h3")?.focus({ preventScroll: true }));
   };
 
   /* Client check first; the server checks again. The action is dispatched
@@ -560,48 +640,19 @@ export default function ContactForm() {
                     </>
                   )}
 
+                  {/* The enquiry type still travels with the submission — it
+                      is what tells a package request from a consultation in
+                      the inbox — but it is no longer announced back to the
+                      visitor. The banner that used to say it sat above the
+                      fields on step one and below them on step two, and it
+                      repeated what the quote panel overhead already shows.
+                      Only the hidden fields remain. */}
                   {enquiryType && (
                     <>
                       <input type="hidden" name="enquiry" value={enquiryType} />
                       {chosenPackage && (
                         <input type="hidden" name="package" value={combinationLabel(chosenPackage)} />
                       )}
-                      <div
-                        hidden={step === 2 && !!lockedCombination}
-                        className="mt-8 flex items-start gap-4 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 sm:p-5"
-                      >
-                        <span aria-hidden="true" className="mt-[3px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
-                            <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                          </svg>
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-[13px] leading-relaxed text-text/70">
-                            <span className="mr-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary">
-                              {ENQUIRY_LABELS[enquiryType].badge}
-                            </span>
-                            <span className="[text-wrap:pretty]">
-                              {enquiryType === "package" && requestedQuote?.tier
-                                ? NAMED_PACKAGE_NOTE
-                                : ENQUIRY_LABELS[enquiryType].note}
-                            </span>
-                          </p>
-
-                          {/* The exact combination chosen on the Services page,
-                              shown back so the visitor can see it carried over
-                              and know what the inbox will receive. */}
-                          {chosenPackage && (
-                            <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-[14px] font-medium tracking-[-0.01em] text-text">
-                              {chosenPackage.parts.map((part, i) => (
-                                <span key={part} className="flex items-center gap-2">
-                                  {i > 0 && <span aria-hidden="true" className="font-mono text-primary">+</span>}
-                                  {part}
-                                </span>
-                              ))}
-                            </p>
-                          )}
-                        </div>
-                      </div>
                     </>
                   )}
 
@@ -655,7 +706,17 @@ export default function ContactForm() {
                           { name: lockedQuote.tier.name, value: lockedQuote.tier.price },
                           ...lockedQuote.addOns.map((a) => ({ name: `+ ${a.name}`, value: a.price, quiet: true })),
                         ]}
-                        note={`${headline(lockedQuote.estimate) ? `Estimated from ${formatEstimate(lockedQuote.estimate)}` : "Custom quote"}${
+                        /* Same rule as the panel above: a package the
+                           arithmetic cannot add up still has a published
+                           price, and "Custom quote" printed underneath one
+                           contradicts it. */
+                        note={`${
+                          headline(lockedQuote.estimate)
+                            ? `Estimated from ${formatEstimate(lockedQuote.estimate)}`
+                            : estimateLabel(lockedQuote.estimate, lockedQuote.tier.price) === "Custom Quote"
+                              ? "Custom quote"
+                              : `Package price ${lockedQuote.tier.price}`
+                        }${
                           headline(lockedQuote.estimate) && lockedQuote.estimate.custom.length > 0 ? ", with custom items quoted after review" : ""
                         }.`}
                       >
