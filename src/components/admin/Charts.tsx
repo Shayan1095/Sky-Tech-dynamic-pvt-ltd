@@ -46,6 +46,23 @@ export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWe
   const peak = Math.max(...buckets.map((b) => b.value), 1);
   const total = buckets.reduce((sum, b) => sum + b.value, 0);
 
+  /* Thirty days in half a card is a different chart from four weeks in one.
+
+     Every bar used to carry its own number above it. At four or six periods
+     that reads; at thirty, each column is about nine pixels wide and a
+     three-digit number is twice that, so the numbers ran into each other into
+     a grey smear across the top of the chart — the thing that made Traffic
+     look broken. Past ten periods only two are written: the tallest, which is
+     what the axis is scaled to, and the newest, which is the one being looked
+     for. Every other value is still there on hover.
+
+     The gap tightens for the same reason. Six pixels between thirty bars
+     spends more of the card on gaps than on data. */
+  const many = buckets.length > 10;
+  const gap = many ? "gap-[3px]" : "gap-1.5";
+  const writes = (index: number, value: number) =>
+    value > 0 && (!many || value === peak || index === buckets.length - 1);
+
   return (
     <div>
       {/* The columns must stretch to the full 140px. With items-end they were
@@ -53,7 +70,7 @@ export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWe
           auto-height parent resolves to auto — so every bar computed to zero
           and the chart showed its numbers floating over empty space. */}
       <div
-        className="flex h-[140px] items-stretch gap-1.5"
+        className={`flex h-[140px] items-stretch ${gap}`}
         role="img"
         aria-label={`${total} in total across ${buckets.length} periods`}
       >
@@ -65,7 +82,7 @@ export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWe
               className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
             >
               <span className="font-mono text-[9px] leading-none text-text/40">
-                {bucket.value > 0 ? bucket.value : ""}
+                {writes(i, bucket.value) ? bucket.value : ""}
               </span>
               {/* A track with a definite height, so the bar inside it has
                   something real to be a percentage of. */}
@@ -83,7 +100,7 @@ export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWe
         })}
       </div>
 
-      <div className="mt-2 flex gap-1.5">
+      <div className={`mt-2 flex ${gap}`}>
         {buckets.map((bucket, i) => (
           <span
             key={`${i}-${bucket.label}`}
