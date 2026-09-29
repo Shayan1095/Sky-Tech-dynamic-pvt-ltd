@@ -73,6 +73,43 @@ export default function Preloader() {
 
     let cancelled = false;
 
+    const remember = () => {
+      try {
+        sessionStorage.setItem(SEEN_KEY, "1");
+      } catch {
+        /* private mode: the intro simply plays again next time */
+      }
+    };
+
+    /* The intro is over — however it got here. */
+    const finish = () => {
+      if (cancelled) return;
+      remember();
+      announceReady();
+      setDone(true);
+    };
+
+    /* A wall-clock failsafe, and the reason it exists.
+
+       Everything below is driven by GSAP, and GSAP is driven by
+       requestAnimationFrame, which a browser stops outright for a tab it is
+       not painting. Open the site in a background tab — a middle-click, a
+       link opened to read in a moment — and the counter freezes mid-count,
+       the exit tween never reaches its onComplete, and the panel is still
+       covering the page when you come back to it. The page underneath had
+       loaded the whole time; nothing was ever going to lift the cover.
+       Reloading fixed it, because the second load finds the "seen" flag and
+       skips the intro entirely. That is the intro appearing twice, with the
+       first one showing nothing.
+
+       Timers are the one clock a background tab keeps: throttled to about a
+       second, never stopped. So the guarantee hangs on setTimeout rather
+       than on frames — after this long the intro is over regardless of what
+       the frame loop is doing. It is set well clear of the longest honest
+       run (a 1.8s ceiling, then 0.4s of counting and 0.65s of lift), so it
+       never cuts short an intro that is actually playing. */
+    const failsafe = window.setTimeout(finish, 4000);
+
     const ctx = gsap.context(() => {
       /* Intro: the frame draws, the rules sweep across, the registration
          marks turn in, and the wordmark wipes on. */
@@ -128,13 +165,14 @@ export default function Preloader() {
       const ceiling = new Promise<void>((resolve) => setTimeout(resolve, 1800));
 
       const exit = () => {
-        try {
-          sessionStorage.setItem(SEEN_KEY, "1");
-        } catch {
-          /* private mode: the intro simply plays again next time */
-        }
+        remember();
         gsap
-          .timeline({ onComplete: () => setDone(true) })
+          .timeline({
+            onComplete: () => {
+              window.clearTimeout(failsafe);
+              setDone(true);
+            },
+          })
           .to(".pl-content", { yPercent: -6, opacity: 0, duration: 0.55, ease: "power3.in" }, 0)
           .to(root, { clipPath: "inset(0 0 100% 0)", duration: 0.65, ease: "power4.inOut" }, 0.2)
           // The hero's entrance starts as the panel lifts, not after.
@@ -156,6 +194,7 @@ export default function Preloader() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(failsafe);
       ctx.revert();
     };
   }, []);

@@ -288,9 +288,25 @@ export default function ServiceSelect({
         </div>
         <input type="hidden" name={name} value={value} />
 
-        {/* Panel — pressing inside it never moves focus off the trigger. */}
+        {/* Panel — pressing inside it never moves focus off the trigger.
+
+            On mousedown, not pointerdown, and the difference is the whole
+            control on a phone.
+
+            Preventing the default on `pointerdown` does stop focus leaving
+            the trigger, which is what it was here for. It also tells the
+            browser this pointer interaction is being handled directly — so
+            on a touchscreen it suppresses the compatibility events that
+            follow, `click` among them. Every option chooses on click. The
+            result was a dropdown that opened on a phone, highlighted what
+            you tapped, and then did nothing: no service could be picked,
+            and because the package list is built from the chosen service,
+            no package could be picked either.
+
+            `mousedown` holds focus exactly the same way on a mouse, and a
+            touch tap still produces its click. */}
         <div
-          onPointerDown={(event) => event.preventDefault()}
+          onMouseDown={(event) => event.preventDefault()}
           className={`absolute inset-x-0 top-full z-30 mt-2 origin-top overflow-hidden rounded-[20px] border border-text/[0.08] bg-white shadow-[0_2px_4px_rgb(11_31_53/0.06),0_32px_64px_-24px_rgb(11_31_53/0.35)] transition-[opacity,translate,scale,visibility] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
             open ? "visible translate-y-0 scale-100 opacity-100" : "pointer-events-none invisible -translate-y-2 scale-[0.98] opacity-0"
           }`}

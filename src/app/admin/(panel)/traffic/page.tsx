@@ -35,12 +35,17 @@ export default async function TrafficPage() {
             />
           </div>
 
-          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          {/* Each card its own height. Side by side in a stretched grid, the
+          chart card was padded out to match whatever the list beside it had
+          grown to — a 140px chart sitting in a 350px box, with the bottom
+          half of it empty. The chart did not change; the box around it did. */}
+      <div className="mt-3 grid items-start gap-3 lg:grid-cols-2">
             <Card>
               <CardTitle note="views per day">Last 30 days</CardTitle>
               <WeeklyBars
                 buckets={traffic.days.map((d) => ({ label: d.label, value: d.views }))}
                 minWeeks={7}
+                period="days"
               />
             </Card>
 

@@ -41,7 +41,19 @@ function Caption({ children }: { children: React.ReactNode }) {
    and a line between them would imply values in between that were never
    measured. Empty periods are drawn as a hairline on the axis, so the shape of
    the whole window is visible from the first day. */
-export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWeeks?: number }) {
+export function WeeklyBars({
+  buckets,
+  minWeeks = 4,
+  /* What one bar is, for the captions and the description read aloud. The
+     chart serves weeks on the dashboard and days on Traffic, and "4 of 7
+     periods so far" under a chart of days told a reader nothing they could
+     act on. */
+  period = "periods",
+}: {
+  buckets: Bucket[];
+  minWeeks?: number;
+  period?: string;
+}) {
   const withData = buckets.filter((b) => b.value > 0).length;
   const peak = Math.max(...buckets.map((b) => b.value), 1);
   const total = buckets.reduce((sum, b) => sum + b.value, 0);
@@ -72,7 +84,7 @@ export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWe
       <div
         className={`flex h-[140px] items-stretch ${gap}`}
         role="img"
-        aria-label={`${total} in total across ${buckets.length} periods`}
+        aria-label={`${total} in total across ${buckets.length} ${period}`}
       >
         {buckets.map((bucket, i) => {
           const height = bucket.value > 0 ? Math.max((bucket.value / peak) * 100, 4) : 1.5;
@@ -114,7 +126,7 @@ export function WeeklyBars({ buckets, minWeeks = 4 }: { buckets: Bucket[]; minWe
       {withData === 0 && <Caption>Nothing recorded yet — bars appear as they arrive</Caption>}
       {withData > 0 && withData < minWeeks && (
         <Caption>
-          {withData} of {minWeeks} periods so far — too early to read a trend
+          {withData} of {minWeeks} {period} so far — too early to read a trend
         </Caption>
       )}
     </div>
