@@ -27,6 +27,7 @@ const PAGES = [
   { href: "/services", label: "Services" },
   { href: "/products", label: "Products" },
   { href: "/media-events", label: "Media & Event" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

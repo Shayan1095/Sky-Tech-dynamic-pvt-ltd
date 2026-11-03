@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { href: "/services", label: "Services" },
   { href: "/products", label: "Products" },
   { href: "/media-events", label: "Media & Event" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -206,7 +207,17 @@ export default function Navbar() {
           </Link>
 
           {/* Links cell (desktop) */}
-          <ul className="hidden flex-1 items-stretch lg:flex">
+          {/* From xl, not lg.
+
+              Seven links, a logo and a CTA do not fit in the row below about
+              1350px: at 1280 it ran 16px past the edge and at 1024 it ran
+              144px past, which is a sideways scrollbar on every page. The
+              sixth link was already close to the limit; Blog crossed it.
+              Below xl the row hands over to the same menu phones use, which
+              it was already doing one breakpoint lower. Padding is tightened
+              at xl too, so the row has room to spare rather than sitting on
+              the boundary. */}
+          <ul className="hidden flex-1 items-stretch xl:flex">
             {NAV_LINKS.map((link, i) => {
               const active = isActive(link.href);
               return (
@@ -214,7 +225,7 @@ export default function Navbar() {
                   <Link
                     href={link.href}
                     aria-current={active ? "page" : undefined}
-                    className="group relative flex items-center gap-2.5 px-6 xl:px-8"
+                    className="group relative flex items-center gap-2.5 px-5 2xl:px-7"
                   >
                     <span
                       className={cn(
@@ -230,7 +241,7 @@ export default function Navbar() {
                     <span
                       aria-hidden="true"
                       className={cn(
-                        "absolute inset-x-6 bottom-0 h-[2px] origin-left bg-primary transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] xl:inset-x-8",
+                        "absolute inset-x-5 bottom-0 h-[2px] origin-left bg-primary transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] 2xl:inset-x-7",
                         active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                       )}
                     />
@@ -243,7 +254,7 @@ export default function Navbar() {
           {/* CTA block (desktop), flush to the right edge */}
           <Link
             href="/contact"
-            className="group relative isolate ml-auto hidden items-center gap-4 overflow-hidden bg-primary px-8 text-[13px] font-semibold uppercase tracking-[0.14em] text-white focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white lg:flex xl:px-10"
+            className="group relative isolate ml-auto hidden items-center gap-4 overflow-hidden bg-primary px-8 text-[13px] font-semibold uppercase tracking-[0.14em] text-white focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white xl:flex 2xl:px-10"
           >
             <span
               aria-hidden="true"
@@ -265,7 +276,7 @@ export default function Navbar() {
             aria-expanded={open}
             aria-controls="site-menu"
             onClick={() => setOpen((v) => !v)}
-            className="ml-auto flex items-center gap-3 border-l border-text/10 px-5 font-mono text-[11px] uppercase tracking-[0.2em] text-text focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-primary sm:px-6 lg:hidden"
+            className="ml-auto flex items-center gap-3 border-l border-text/10 px-5 font-mono text-[11px] uppercase tracking-[0.2em] text-text focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-primary sm:px-6 xl:hidden"
           >
             <span className="hidden sm:inline">{open ? "Close" : "Menu"}</span>
             <span aria-hidden="true" className="relative block h-3 w-6">
@@ -284,7 +295,7 @@ export default function Navbar() {
         aria-modal="true"
         aria-label="Site menu"
         style={{ visibility: "hidden", clipPath: "inset(0 0 100% 0)" }}
-        className="fixed inset-x-0 bottom-0 top-20 z-40 flex flex-col overflow-y-auto bg-navy text-white lg:hidden"
+        className="fixed inset-x-0 bottom-0 top-20 z-40 flex flex-col overflow-y-auto bg-navy text-white xl:hidden"
       >
         {/* Drafting frame */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
