@@ -78,8 +78,32 @@ export async function createSession(userId: number): Promise<void> {
   });
 }
 
+/* The demo panel has no sign-in at all.
+
+   It exists so the panel can be shown without credentials, and it is built so
+   it cannot be pointed at anything real: both conditions must hold. DEMO_MODE
+   is only ever set on the demo deployment, and db() is null only when no
+   DATABASE_URL is configured. Connect a database and this stops running on the
+   very next request — normal sign-in comes back on its own, rather than
+   leaving an open door standing in front of live data.
+
+   Nothing is written anywhere. The object below is invented per request and
+   never reaches the adminUsers table. */
+const demoOpenDoor = () => process.env.DEMO_MODE === "1" && db() === null;
+
+const DEMO_ADMIN: Admin = {
+  id: 0,
+  email: "demo@skytech.com.pk",
+  name: "Demo",
+  role: "owner",
+  hasTotp: false,
+  mustChangePassword: false,
+};
+
 /** The signed-in admin, or null. Safe to call from any server component. */
 export async function currentAdmin(): Promise<Admin | null> {
+  if (demoOpenDoor()) return DEMO_ADMIN;
+
   const handle = db();
   if (!handle) return null;
 
